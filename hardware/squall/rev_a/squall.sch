@@ -4058,7 +4058,7 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="FRAME2" library="frames" deviceset="LETTER_L" device=""/>
 <part name="C1" library="passives" deviceset="CAPACITOR" device="" value="0.8pF">
-<attribute name="DIGIKEY" value="490-5419-1-ND"/>
+<attribute name="DIGIKEY" value="490-6269-1-ND"/>
 </part>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="J4" library="connector" deviceset="TC2030-JLINK" device="-NL"/>

@@ -1292,7 +1292,7 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <attribute name="DIGIKEY" value="RHM150CDCT-ND" x="2.3622" y="12.5222" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="C1" library="passives" package="0402_CAP" value="0.8pF" x="14.5542" y="21.2118" smashed="yes" rot="R180">
-<attribute name="DIGIKEY" value="490-5419-1-ND" x="14.5542" y="21.2118" size="0.762" layer="27" ratio="12" rot="R180" display="off"/>
+<attribute name="DIGIKEY" value="490-6269-1-ND" x="14.5542" y="21.2118" size="0.762" layer="27" ratio="12" rot="R180" display="off"/>
 <attribute name="NAME" x="13.843" y="21.2118" size="0.762" layer="25" font="vector" ratio="12" align="center-right"/>
 <attribute name="VALUE" x="14.5542" y="22.6088" size="1.016" layer="27" font="vector" ratio="12" rot="R180" align="bottom-center"/>
 </element>
