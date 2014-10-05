@@ -18,9 +18,7 @@
 
 #define USE_LEDS                         1
 
-
-// THIS MUST NOT BE 0 IF YOU WANT TO SET A NAME IN THE ADVERTISEMENT
-#define APP_CFG_NON_CONN_ADV_TIMEOUT    180                                 /**< Time for which the device must be advertising in non-connectable mode (in seconds). 0 disables timeout. */
+#define APP_CFG_NON_CONN_ADV_TIMEOUT    0                                 /**< Time for which the device must be advertising in non-connectable mode (in seconds). 0 disables timeout. */
 #define NON_CONNECTABLE_ADV_INTERVAL    MSEC_TO_UNITS(2000, UNIT_0_625_MS)   /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100ms to 10.24s). */
 
 
