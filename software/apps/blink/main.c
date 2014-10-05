@@ -72,11 +72,14 @@ int main(void) {
 
     led_on(LED);
 
+    // Need to set the clock to something
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
 
     timer_init();
     timer_start();
 
     // Enter main loop.
-    while (1) { }
+    while (1) {
+        sd_app_evt_wait();
+    }
 }
