@@ -25,16 +25,22 @@
 //#define BUTTON_STOP    17
 //#define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
+// This pin is mapped to the FTDI chip to all the device to enter the
+// bootloader mode.
+#define BOOTLOADER_CTRL_PIN  3
+#define BOOTLOADER_CTRL_PULL NRF_GPIO_PIN_PULLUP
+
+
 #define RX_PIN_NUMBER  28
 #define TX_PIN_NUMBER  29
 #define CTS_PIN_NUMBER 0
 #define RTS_PIN_NUMBER 0
 #define HWFC           false
 
-#define SPIS_MISO_PIN  10    // SPI MISO signal. 
-#define SPIS_CSN_PIN   1     // SPI CSN signal. 
-#define SPIS_MOSI_PIN  11    // SPI MOSI signal. 
-#define SPIS_SCK_PIN   9     // SPI SCK signal. 
+#define SPIS_MISO_PIN  10    // SPI MISO signal.
+#define SPIS_CSN_PIN   1     // SPI CSN signal.
+#define SPIS_MOSI_PIN  11    // SPI MOSI signal.
+#define SPIS_SCK_PIN   9     // SPI SCK signal.
 
 #define SPIM0_SCK_PIN       9u     /**< SPI clock GPIO pin number. */
 #define SPIM0_MOSI_PIN      11u     /**< SPI Master Out Slave In GPIO pin number. */
