@@ -4083,6 +4083,7 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 </part>
 <part name="GND15" library="supply1" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" deviceset="VCC" device=""/>
+<part name="GND3" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -4597,13 +4598,6 @@ Switch</text>
 <label x="223.52" y="137.16" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="P12" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="P12"/>
-<wire x1="55.88" y1="76.2" x2="53.34" y2="76.2" width="0.1524" layer="91"/>
-<label x="53.34" y="76.2" size="1.27" layer="95" rot="R180" xref="yes"/>
-</segment>
-</net>
 <net name="PROG_RX" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="P28"/>
@@ -4656,13 +4650,6 @@ Switch</text>
 <wire x1="119.38" y1="86.36" x2="101.6" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="P07" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="P07"/>
-<wire x1="55.88" y1="91.44" x2="53.34" y2="91.44" width="0.1524" layer="91"/>
-<label x="53.34" y="91.44" size="1.27" layer="95" rot="R180" xref="yes"/>
-</segment>
-</net>
 <net name="P23" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="P23"/>
@@ -4685,13 +4672,6 @@ Switch</text>
 <pinref part="J1" gate="G$1" pin="2"/>
 <wire x1="185.42" y1="142.24" x2="177.8" y2="142.24" width="0.1524" layer="91"/>
 <label x="185.42" y="142.24" size="1.27" layer="95" xref="yes"/>
-</segment>
-</net>
-<net name="P21" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="P21"/>
-<wire x1="101.6" y1="101.6" x2="104.14" y2="101.6" width="0.1524" layer="91"/>
-<label x="104.14" y="101.6" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="BTLDR_CTRL" class="0">
@@ -4725,6 +4705,11 @@ Switch</text>
 <pinref part="J2" gate="G$1" pin="3"/>
 <wire x1="210.82" y1="139.7" x2="205.74" y2="139.7" width="0.1524" layer="91"/>
 <label x="205.74" y="139.7" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="P07"/>
+<wire x1="55.88" y1="91.44" x2="53.34" y2="91.44" width="0.1524" layer="91"/>
+<label x="53.34" y="91.44" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>
@@ -4771,6 +4756,7 @@ If BAT2 is connected, D2 and R2 must be populated for recharging.</text>
 <attribute name="DIGIKEY" x="81.28" y="160.02" size="1.27" layer="96" display="off"/>
 <attribute name="MOUSER" x="81.28" y="160.02" size="1.27" layer="96" display="off"/>
 </instance>
+<instance part="GND3" gate="1" x="170.18" y="35.56"/>
 </instances>
 <busses>
 </busses>
@@ -4813,6 +4799,24 @@ If BAT2 is connected, D2 and R2 must be populated for recharging.</text>
 <wire x1="114.3" y1="132.08" x2="119.38" y2="132.08" width="0.1524" layer="91"/>
 <wire x1="119.38" y1="132.08" x2="119.38" y2="119.38" width="0.1524" layer="91"/>
 <pinref part="GND4" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U2" gate="1" pin="TEST"/>
+<wire x1="167.64" y1="53.34" x2="170.18" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="53.34" x2="170.18" y2="48.26" width="0.1524" layer="91"/>
+<pinref part="GND3" gate="1" pin="GND"/>
+<pinref part="U2" gate="1" pin="GND"/>
+<wire x1="170.18" y1="48.26" x2="170.18" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="45.72" x2="170.18" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="43.18" x2="170.18" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="167.64" y1="48.26" x2="170.18" y2="48.26" width="0.1524" layer="91"/>
+<junction x="170.18" y="48.26"/>
+<pinref part="U2" gate="1" pin="GND@1"/>
+<wire x1="167.64" y1="45.72" x2="170.18" y2="45.72" width="0.1524" layer="91"/>
+<junction x="170.18" y="45.72"/>
+<pinref part="U2" gate="1" pin="GND@2"/>
+<wire x1="167.64" y1="43.18" x2="170.18" y2="43.18" width="0.1524" layer="91"/>
+<junction x="170.18" y="43.18"/>
 </segment>
 </net>
 <net name="VCC" class="0">
