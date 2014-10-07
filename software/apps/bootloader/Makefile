@@ -26,12 +26,13 @@ APPLICATION_SRCS += nrf_delay.c
 
 
 DEVICE = NRF51
-BOARD  = BOARD_NRF6310
+BOARD  = BOARD_SQUALL
 
 USE_SOFTDEVICE = s110
 USE_BOOTLOADER = 1
 
-SDK_PATH ?= $(HOME)/Downloads/nrf51822/
+#SDK_PATH ?= $(HOME)/Downloads/nrf51822/
+SDK_PATH ?= $(HOME)/nrf51822_sdk/nrf51822/
 TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ./
@@ -39,7 +40,14 @@ LIBRARY_PATHS += ../../include
 LIBRARY_PATHS += $(SDK_INCLUDE_PATH)bootloader_dfu/
 LIBRARY_PATHS += $(SDK_INCLUDE_PATH)bootloader_dfu/hci_transport/
 
-CFLAGS = -Os
+# Need to make sure that the squall specific header files get used, not
+# the ones in the SDK
+CFLAGS += -include bootloader_types.h
+CFLAGS += -include dfu_types.h
+CFLAGS += -include hci_transport_config.h
+
+
+CFLAGS += -Os
 GDB_PORT_NUMBER = 2331
 
 include $(TEMPLATE_PATH)Makefile

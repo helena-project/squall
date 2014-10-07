@@ -31,7 +31,7 @@
 #include "app_timer.h"
 #include "app_gpiote.h"
 #include "nrf_error.h"
-#include "squall.h"
+#include "boards.h"
 #include "ble_debug_assert_handler.h"
 #include "softdevice_handler.h"
 #include "pstorage_platform.h"
