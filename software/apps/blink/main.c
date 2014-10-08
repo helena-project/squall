@@ -18,7 +18,7 @@
 #define BLINK_TIMER_OP_QUEUE_SIZE          4                                  /**< Size of timer operation queues. */
 
 // How long before the timer fires.
-#define BLINK_RATE     APP_TIMER_TICKS(500, BLINK_TIMER_PRESCALER) // Blink every 0.5 seconds
+#define BLINK_RATE     APP_TIMER_TICKS(200, BLINK_TIMER_PRESCALER) // Blink every 0.5 seconds
 
 // Timer data structure
 static app_timer_id_t  blink_timer;                        /**< Battery timer. */

@@ -28,11 +28,11 @@
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="13" fill="1" visible="yes" active="yes"/>
 <layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="yes"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="no" active="yes"/>
 <layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
@@ -125,7 +125,7 @@
 <plain>
 <text x="10.16" y="16.2814" size="0.762" layer="22" font="vector" ratio="12" rot="MR0" align="center-left">Brad
 Campbell</text>
-<text x="12.7" y="6.4008" size="0.762" layer="22" font="vector" ratio="12" rot="MR0" align="bottom-center">2014/09/30</text>
+<text x="12.7" y="6.4008" size="0.762" layer="22" font="vector" ratio="12" rot="MR0" align="bottom-center">2014/10/08</text>
 <wire x1="18.8976" y1="1.6002" x2="25.4" y2="12.7" width="0" layer="20" curve="60.85"/>
 <wire x1="25.4" y1="12.7" x2="12.7" y2="25.4" width="0" layer="20" curve="90"/>
 <wire x1="12.7" y1="25.4" x2="0" y2="12.7" width="0" layer="20" curve="90"/>
@@ -977,15 +977,16 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 <class number="0" name="default" width="0" drill="0">
 </class>
 </classes>
-<designrules name="sunstone-4lyr_v1.0.0.3 *">
-<description language="en">&lt;b&gt;EAGLE Design Rules for *4* Layer Designs (MLB)&lt;/b&gt;
+<designrules name="sunstone-2lyr_v1.0.0.3 *">
+<description language="en">&lt;b&gt;EAGLE Design Rules for *2* Layer Designs (DS)&lt;/b&gt;
 &lt;p&gt;
-This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requirements for our 4 layer MLB products. For questions, comments, suggestions, please contact Sunstone Customer Support:&lt;p&gt;&lt;b&gt;Email:&lt;/b&gt; mailto:support@sunstone.com&lt;b&gt;&lt;br&gt;Phone:&lt;/b&gt; 800-228-8198&lt;p&gt; v1.1Mod10/16/07~Layers-core reversal.Distance C/D.Restring%.Supply G
-&lt;p&gt;v1.2Mod12/06/07~Distance C/D to 20mils.&lt;p&gt;v1.3Mod12/12/07~Supply/Annulus Value to 12.5mils&lt;p&gt;1/15/08 SSC-EAGLE-4Lyr_v1.0.0.3~For Release&lt;p&gt;10/03/08 Description Edit&lt;p&gt;
+This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requirements for our double sided products. For questions, comments, suggestions, please contact Sunstone Customer Support: &lt;p&gt;&lt;b&gt;Email:&lt;/b&gt;  mailto:support@sunstone.com&lt;br&gt;&lt;b&gt;Phone:&lt;/b&gt; 800-228-8198.&lt;p&gt; v1.1Mod10/16/07~Layers-core reversal.Distance C/D.Restring%.Supply G%.&lt;p&gt; v1.2 Mod12/06/07~Distance C/D to 20mils.&lt;p&gt;v1.3Mod12/12/07~Supply/Annulus Value to 12.5mils&lt;p&gt;1/15/08 SSC-EAGLE-2Lyr_v1.0.0.3~For Release&lt;p&gt;10/3/08 Description Edit.&lt;p&gt;
+
+&lt;p&gt;
 &lt;i&gt;Attention: Upon running the design check and making modifications, please remember to save any changes before closing the application and sending in your board file to Sunstone Circuits for conversion.&lt;i&gt;</description>
 <param name="layerSetup" value="(1*16)"/>
 <param name="mtCopper" value="0.0178mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0356mm 0.0178mm"/>
-<param name="mtIsolate" value="12mil 28mil 12mil 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 12mil"/>
+<param name="mtIsolate" value="59mil 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm 0.1499mm 0.2007mm"/>
 <param name="mdWireWire" value="6mil"/>
 <param name="mdWirePad" value="6mil"/>
 <param name="mdWireVia" value="6mil"/>
@@ -1001,7 +1002,7 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <param name="mdDrill" value="16mil"/>
 <param name="mdSmdStop" value="0mil"/>
 <param name="msWidth" value="6mil"/>
-<param name="msDrill" value="8mil"/>
+<param name="msDrill" value="14mil"/>
 <param name="msMicroVia" value="9.9898mm"/>
 <param name="msBlindViaRatio" value="0.5"/>
 <param name="rvPadTop" value="0.25"/>
@@ -1013,18 +1014,18 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <param name="rvMicroViaInner" value="0.25"/>
 <param name="rlMinPadTop" value="8mil"/>
 <param name="rlMaxPadTop" value="999mil"/>
-<param name="rlMinPadInner" value="8mil"/>
-<param name="rlMaxPadInner" value="999mil"/>
+<param name="rlMinPadInner" value="0mil"/>
+<param name="rlMaxPadInner" value="0mil"/>
 <param name="rlMinPadBottom" value="8mil"/>
 <param name="rlMaxPadBottom" value="999mil"/>
 <param name="rlMinViaOuter" value="8mil"/>
 <param name="rlMaxViaOuter" value="999mil"/>
-<param name="rlMinViaInner" value="8mil"/>
-<param name="rlMaxViaInner" value="999mil"/>
+<param name="rlMinViaInner" value="0mil"/>
+<param name="rlMaxViaInner" value="0mil"/>
 <param name="rlMinMicroViaOuter" value="8mil"/>
 <param name="rlMaxMicroViaOuter" value="999mil"/>
-<param name="rlMinMicroViaInner" value="8mil"/>
-<param name="rlMaxMicroViaInner" value="999mil"/>
+<param name="rlMinMicroViaInner" value="0mil"/>
+<param name="rlMaxMicroViaInner" value="0mil"/>
 <param name="psTop" value="-1"/>
 <param name="psBottom" value="-1"/>
 <param name="psFirst" value="-1"/>
@@ -1036,7 +1037,7 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <param name="mlMaxStopFrame" value="3mil"/>
 <param name="mlMinCreamFrame" value="0mil"/>
 <param name="mlMaxCreamFrame" value="0mil"/>
-<param name="mlViaStopLimit" value="8mil"/>
+<param name="mlViaStopLimit" value="50mil"/>
 <param name="srRoundness" value="0"/>
 <param name="srMinRoundness" value="0mil"/>
 <param name="srMaxRoundness" value="0mil"/>
@@ -1048,8 +1049,8 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <param name="checkAngle" value="0"/>
 <param name="checkFont" value="1"/>
 <param name="checkRestrict" value="1"/>
-<param name="useDiameter" value="31"/>
-<param name="maxErrors" value="50"/>
+<param name="useDiameter" value="13"/>
+<param name="maxErrors" value="500"/>
 </designrules>
 <autorouter>
 <pass name="Default">
@@ -2089,6 +2090,69 @@ This Sunstone Circuits 4 Layer .DRU has been set to cover our minimum requiremen
 <approved hash="19,16,8b5c2b382c6b8c0f"/>
 <approved hash="19,16,173b4773a75199b7"/>
 <approved hash="19,16,4b5c6b386c694c0d"/>
+<approved hash="1,20,cd1e6ede61dfc21f"/>
+<approved hash="1,20,3d022a422a603d20"/>
+<approved hash="1,20,450423c422e44424"/>
+<approved hash="1,20,c10d26cd2182c642"/>
+<approved hash="1,20,4504e2c4e12446e4"/>
+<approved hash="1,20,410422c4212642e6"/>
+<approved hash="1,20,4d0442c441204ee0"/>
+<approved hash="1,20,410522c5212642e6"/>
+<approved hash="1,20,410d22cd211a42da"/>
+<approved hash="1,20,450ce2cce11846d8"/>
+<approved hash="1,20,410c22cc211a42da"/>
+<approved hash="1,20,4d0c42cc411c4edc"/>
+<approved hash="1,20,4f0440c440ec4f2c"/>
+<approved hash="1,20,430420c420ea432a"/>
+<approved hash="1,20,430520c520ea432a"/>
+<approved hash="1,20,4704e0c4e0e84728"/>
+<approved hash="1,20,450d26cd260e45ce"/>
+<approved hash="1,20,410ce6cce60c41cc"/>
+<approved hash="1,20,450c26cc260e45ce"/>
+<approved hash="1,20,490c46cc460849c8"/>
+<approved hash="1,20,bd0d204d218fbccf"/>
+<approved hash="1,20,3f04fec4ff263ee6"/>
+<approved hash="1,20,cd04ce44cea7cde7"/>
+<approved hash="1,20,4d0bc3cbc20a4cca"/>
+<approved hash="1,20,fc0e3ece3e9efc5e"/>
+<approved hash="1,20,cd1dcfddcea0cc60"/>
+<approved hash="1,20,450462c461a14661"/>
+<approved hash="1,20,d90668c66b27dae7"/>
+<approved hash="1,20,c779e0b9e0e8c728"/>
+<approved hash="1,20,4504204420a445e4"/>
+<approved hash="1,20,45052645266a452a"/>
+<approved hash="1,20,c10e26ce2601c1c1"/>
+<approved hash="1,20,470fe24fe19844d8"/>
+<approved hash="1,20,dd021fc21eaedc6e"/>
+<approved hash="1,20,450523c522a04460"/>
+<approved hash="1,20,4d3cc07cc0a04de0"/>
+<approved hash="1,20,430b264b268643c6"/>
+<approved hash="1,20,5f731eb31ee45f24"/>
+<approved hash="1,20,4d04ce44cf264c66"/>
+<approved hash="1,20,590428c42be05a20"/>
+<approved hash="1,20,4c7dc13dc1204c60"/>
+<approved hash="1,20,c706e246e1a4c4e4"/>
+<approved hash="1,20,c50666466767c427"/>
+<approved hash="1,20,c30440c44126c2e6"/>
+<approved hash="1,20,c50467c467e2c522"/>
+<approved hash="1,20,490dc8cdcf0e4ece"/>
+<approved hash="1,20,4a043bc43be14a21"/>
+<approved hash="1,20,3d0462c461213ee1"/>
+<approved hash="1,20,4f7dc1bdc1ea4f2a"/>
+<approved hash="1,20,c70426c427e2c622"/>
+<approved hash="1,20,420421c421aa426a"/>
+<approved hash="1,20,fd043e443f67fc27"/>
+<approved hash="1,20,451de05de1204460"/>
+<approved hash="1,20,440c274c27784438"/>
+<approved hash="1,20,c506664666a7c5e7"/>
+<approved hash="1,20,471fe0dfe1a24662"/>
+<approved hash="1,20,4d04ce44ce7a4d3a"/>
+<approved hash="1,20,4c04414441604c20"/>
+<approved hash="1,20,fd0ce04ce083fdc3"/>
+<approved hash="1,20,460c21cc21fb463b"/>
+<approved hash="1,20,fc0ce14ce10ffc4f"/>
+<approved hash="1,20,c706244624a2c7e2"/>
+<approved hash="1,20,5c04eb44eb605c20"/>
 <approved hash="4,1,759d374336bc7206"/>
 <approved hash="4,1,1452862793bebed6"/>
 <approved hash="4,1,a5443d2581f2dc39"/>

@@ -4139,9 +4139,9 @@ Switch</text>
 </instance>
 <instance part="GND8" gate="1" x="109.22" y="25.4"/>
 <instance part="GND18" gate="1" x="119.38" y="25.4"/>
-<instance part="GND19" gate="1" x="30.48" y="134.62"/>
-<instance part="C8" gate="G$1" x="132.08" y="53.34">
-<attribute name="DIGIKEY" x="132.08" y="53.34" size="1.778" layer="96" display="off"/>
+<instance part="GND19" gate="1" x="30.48" y="127"/>
+<instance part="C8" gate="G$1" x="132.08" y="45.72">
+<attribute name="DIGIKEY" x="132.08" y="45.72" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND20" gate="1" x="132.08" y="25.4"/>
 <instance part="R4" gate="G$1" x="53.34" y="53.34" rot="R270">
@@ -4166,8 +4166,8 @@ Switch</text>
 <instance part="GND5" gate="1" x="162.56" y="121.92"/>
 <instance part="P+4" gate="VCC" x="162.56" y="149.86"/>
 <instance part="GND9" gate="1" x="185.42" y="121.92"/>
-<instance part="C1" gate="G$1" x="177.8" y="58.42">
-<attribute name="DIGIKEY" x="177.8" y="58.42" size="1.778" layer="96" display="off"/>
+<instance part="C1" gate="G$1" x="177.8" y="45.72">
+<attribute name="DIGIKEY" x="177.8" y="45.72" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND10" gate="1" x="177.8" y="25.4"/>
 <instance part="J4" gate="G$1" x="127" y="165.1"/>
@@ -4243,13 +4243,13 @@ Switch</text>
 </segment>
 <segment>
 <pinref part="C14" gate="G$1" pin="2"/>
-<wire x1="30.48" y1="139.7" x2="30.48" y2="137.16" width="0.1524" layer="91"/>
+<wire x1="30.48" y1="139.7" x2="30.48" y2="129.54" width="0.1524" layer="91"/>
 <pinref part="GND19" gate="1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="GND20" gate="1" pin="GND"/>
 <pinref part="C8" gate="G$1" pin="2"/>
-<wire x1="132.08" y1="27.94" x2="132.08" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="27.94" x2="132.08" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>
@@ -4271,7 +4271,7 @@ Switch</text>
 <segment>
 <pinref part="C1" gate="G$1" pin="2"/>
 <pinref part="GND10" gate="1" pin="GND"/>
-<wire x1="177.8" y1="27.94" x2="177.8" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="27.94" x2="177.8" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="J4" gate="G$1" pin="GND"/>
@@ -4354,7 +4354,7 @@ Switch</text>
 <pinref part="B1" gate="G$1" pin="VDD_PA"/>
 <pinref part="C8" gate="G$1" pin="1"/>
 <wire x1="132.08" y1="58.42" x2="134.62" y2="58.42" width="0.1524" layer="91"/>
-<wire x1="132.08" y1="55.88" x2="132.08" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="48.26" x2="132.08" y2="58.42" width="0.1524" layer="91"/>
 <junction x="132.08" y="58.42"/>
 </segment>
 </net>
@@ -4366,7 +4366,7 @@ Switch</text>
 <pinref part="B1" gate="G$1" pin="SE"/>
 <pinref part="A1" gate="G$1" pin="ANTENNA"/>
 <pinref part="C1" gate="G$1" pin="1"/>
-<wire x1="177.8" y1="60.96" x2="177.8" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="48.26" x2="177.8" y2="63.5" width="0.1524" layer="91"/>
 <junction x="177.8" y="63.5"/>
 </segment>
 </net>
