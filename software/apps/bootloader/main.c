@@ -37,6 +37,8 @@
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
 
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 0
+
 #define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
@@ -154,6 +156,17 @@ static void softdevice_init(bool init_softdevice)
     APP_ERROR_CHECK(err_code);
 
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
+
+    // Enable BLE stack
+    // This has to be done for the bootloader to work.
+    ble_enable_params_t ble_enable_params;
+    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+    ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
+    err_code = sd_ble_enable(&ble_enable_params);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(err_code);
 
 }
 

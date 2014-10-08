@@ -7,6 +7,7 @@ APPLICATION_SRCS += bootloader.c
 APPLICATION_SRCS += bootloader_util_gcc.c
 
 APPLICATION_SRCS += dfu_dual_bank.c
+#APPLICATION_SRCS += dfu_single_bank.c
 APPLICATION_SRCS += dfu_transport_serial.c
 
 APPLICATION_SRCS += hci_slip.c
