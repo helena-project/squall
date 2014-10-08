@@ -69,8 +69,7 @@ int main(void) {
 
     // Initialize.
     led_init(LED);
-
-    led_on(LED);
+    led_off(LED);
 
     // Need to set the clock to something
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
