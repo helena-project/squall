@@ -11,12 +11,11 @@
 #include "ble_debug_assert_handler.h"
 #include "led.h"
 
-#define DEVICE_NAME                      "squall"
 
-#define IS_SRVC_CHANGED_CHARACT_PRESENT  0                                 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
-#define ADVERTISING_LED                  LED_0                             /**< Is on when device is advertising. */
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
+#define ADVERTISING_LED                 LED_0                             /**< Is on when device is advertising. */
 
-#define USE_LEDS                         1
+#define USE_LEDS                        1
 
 #define APP_CFG_NON_CONN_ADV_TIMEOUT    0                                 /**< Time for which the device must be advertising in non-connectable mode (in seconds). 0 disables timeout. */
 #define NON_CONNECTABLE_ADV_INTERVAL    MSEC_TO_UNITS(2000, UNIT_0_625_MS)   /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100ms to 10.24s). */
@@ -84,6 +83,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
 
+// Setup TX power and the device name
 static void gap_params_init(void)
 {
     uint32_t                err_code;
@@ -152,8 +152,6 @@ static void advertising_start(void)
 
     err_code = sd_ble_gap_adv_start(&m_adv_params);
     APP_ERROR_CHECK(err_code);
-
-    led_on(ADVERTISING_LED);
 }
 
 
@@ -193,6 +191,7 @@ int main(void)
 {
     // Initialize.
     led_init(ADVERTISING_LED);
+    led_off(ADVERTISING_LED);
 
     ble_stack_init();
 
@@ -204,7 +203,6 @@ int main(void)
     advertising_start();
 
     while (1) {
-        led_toggle(ADVERTISING_LED);
         power_manage();
     }
 }

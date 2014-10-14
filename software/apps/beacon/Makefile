@@ -12,7 +12,7 @@ BOARD = BOARD_SQUALL
 
 USE_SOFTDEVICE = s110
 
-SDK_PATH ?= $(HOME)/Downloads/nrf51822/
+SDK_PATH ?= $(HOME)/nrf51822_sdk/nrf51822/
 TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ../../include

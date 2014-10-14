@@ -16,7 +16,7 @@ void led_on (uint32_t pin_number) {
 }
 
 void led_off (uint32_t pin_number) {
-    nrf_gpio_pin_clear(pin_number);
+    nrf_gpio_pin_set(pin_number);
 }
 
 void led_toggle (uint32_t pin_number) {
