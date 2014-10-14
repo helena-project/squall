@@ -8,7 +8,13 @@ APPLICATION_SRCS += ble_srv_common.c
 APPLICATION_SRCS += led.c
 
 DEVICE = NRF51
-BOARD = BOARD_SQUALL
+
+ifndef TARGET
+	TARGET = SQUALL
+endif
+
+TARGET_UPPER = $(shell echo $(TARGET) | tr a-z A-Z)
+BOARD = BOARD_$(TARGET_UPPER)
 
 USE_SOFTDEVICE = s110
 

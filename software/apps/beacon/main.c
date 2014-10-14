@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "nrf_gpio.h"
 #include "ble_advdata.h"
-#include "squall.h"
+#include "boards.h"
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "ble_debug_assert_handler.h"
