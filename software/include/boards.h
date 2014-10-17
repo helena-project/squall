@@ -15,6 +15,10 @@
 	#define DEVICE_NAME "pca10003"
 #elif defined(BOARD_SQUALL)
 	#include "squall.h"
+#elif defined(BOARD_ZIGBEAG)
+	#include "zigbeag.h"
+#elif defined(BOARD_QUITBIT)
+	#include "quitbit.h"
 #else
 	#error "Board is not defined"
 #endif
