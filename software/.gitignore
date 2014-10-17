@@ -1,4 +1,5 @@
 _build
+reset.jlink
 flash.jlink
 erase-all.jlink
 flash-softdevice.jlink
