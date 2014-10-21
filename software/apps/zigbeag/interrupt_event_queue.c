@@ -5,6 +5,7 @@
 #include "nrf_error.h"
 
 #include "interrupt_event_queue.h"
+#include "bcp_spi_slave.h"
 
 interrupt_event_queue_item_t queue[INTERRUPT_EVENT_QUEUE_LEN];
 uint8_t queue_head = 0;
@@ -31,6 +32,10 @@ uint32_t interrupt_event_queue_add (uint8_t interrupt_event,
 	// Update counters
 	items_in_queue++;
 	queue_head = (queue_head + 1) % INTERRUPT_EVENT_QUEUE_LEN;
+
+	// Notify the SPI layer that it should read from the queue to populate
+	// the SPI buffer ahead of time.
+	spi_slave_notify();
 
 	return NRF_SUCCESS;
 }

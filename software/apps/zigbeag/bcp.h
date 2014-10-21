@@ -14,8 +14,6 @@
 #define BCP_RSP_ADVERTISEMENT 1  // send the raw advertisement content
 
 
-
-
 // Send all received advertisements to the host
 void bcp_sniff_advertisements ();
 

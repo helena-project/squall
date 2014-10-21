@@ -10,6 +10,6 @@ typedef enum {
 
 #define SPI_BUF_LEN  64
 
-
+void spi_slave_notify();
 
 #endif
