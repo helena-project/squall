@@ -386,8 +386,8 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
 
             if (bcp_irq_advertisements) {
                 interrupt_event_queue_add(BCP_RSP_ADVERTISEMENT,
-                                          p_gap_evt->params.adv_report.dlen,
-                                          (uint8_t*)p_gap_evt->params.adv_report.data);
+                                          p_gap_evt->params.adv_report.dlen+7,
+                                          (uint8_t*)&p_gap_evt->params.adv_report);
 
                    //nrf_gpio_pin_toggle(INTERRUPT_PIN);
             }
