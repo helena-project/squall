@@ -18,13 +18,14 @@ BOARD = BOARD_$(TARGET_UPPER)
 
 USE_SOFTDEVICE = s110
 
-SDK_PATH ?= $(HOME)/nrf51822_sdk/nrf51822/
+SDK_PATH ?= $(HOME)/code/nrf51822_sdk/nrf51822/
 TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ../../include
 SOURCE_PATHS += ../../src
 
 CFLAGS = -Os
+CFLAGS += $(MFLAGS)
 GDB_PORT_NUMBER = 2331
 
 include $(TEMPLATE_PATH)Makefile
