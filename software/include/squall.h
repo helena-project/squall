@@ -14,7 +14,7 @@
 
 #include "nrf_gpio.h"
 
-#define DEVICE_NAME    "squall"
+#define DEVICE_NAME    "D1"
 
 
 #define LED_START      13

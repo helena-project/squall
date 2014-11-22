@@ -41,7 +41,7 @@
 #define HWFC           false
 
 #define SPIS_MISO_PIN  9    // SPI MISO signal.
-#define SPIS_CSN_PIN   6 //11   // SPI CSN signal.
+#define SPIS_CSN_PIN   11 // 6  // SPI CSN signal.
 #define SPIS_MOSI_PIN  8    // SPI MOSI signal.
 #define SPIS_SCK_PIN   10   // SPI SCK signal.
 

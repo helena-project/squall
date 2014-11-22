@@ -12,7 +12,7 @@
 	#define DEVICE_NAME "pca10001"
 #elif defined(BOARD_PCA10003)
 	#include "boards/pca10003.h"
-	#define DEVICE_NAME "pca10003"
+	#define DEVICE_NAME "luxapose: demo_floor"
 #elif defined(BOARD_SQUALL)
 	#include "squall.h"
 #elif defined(BOARD_ZIGBEAG)

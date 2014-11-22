@@ -18,17 +18,17 @@
 #define USE_LEDS                        1
 
 #define APP_CFG_NON_CONN_ADV_TIMEOUT    0                                 /**< Time for which the device must be advertising in non-connectable mode (in seconds). 0 disables timeout. */
-#define NON_CONNECTABLE_ADV_INTERVAL    MSEC_TO_UNITS(2000, UNIT_0_625_MS)   /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100ms to 10.24s). */
+#define NON_CONNECTABLE_ADV_INTERVAL    MSEC_TO_UNITS(750, UNIT_0_625_MS)   /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100ms to 10.24s). */
 
 
 // Insert manufacturing things into the advertisement
 #define APP_COMPANY_IDENTIFIER          0x11BB                            /**< Company identifier I made up */
 
-#define APP_BEACON_INFO_LENGTH          0x09                              /**< Total length of information advertised by the Beacon. */
-#define APP_ADV_DATA_LENGTH             0x07                              /**< Length of manufacturer specific data in the advertisement. */
+#define APP_BEACON_INFO_LENGTH          0x12                              /**< Total length of information advertised by the Beacon. */
+#define APP_ADV_DATA_LENGTH             0x0f                              /**< Length of manufacturer specific data in the advertisement. */
 #define APP_DEVICE_TYPE                 0x01                              /**< Just chose 0x01 */
-#define APP_BEACON_DATA                 0x42, 0x65, 0x61, 0x63, \
-                                        0x6f, 0x6e                        // "Beacon"
+#define APP_BEACON_DATA                 0x42                        // "Beacon"
+#define NOAH_FIELD 0x20, 0x01, 0x47, 0x01, 0xF1, 0x01, 0x32, 0x02, 0x18, 0x4D
 
 // information about the advertisement
 ble_advdata_t                           advdata;
@@ -36,9 +36,7 @@ static ble_gap_adv_params_t             m_adv_params;                     /**< P
 
 static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH] =                  /**< Information advertised by the Beacon. */
 {
-    APP_DEVICE_TYPE,
-    APP_ADV_DATA_LENGTH,
-    APP_BEACON_DATA
+    NOAH_FIELD
 };
 
 
