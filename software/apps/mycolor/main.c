@@ -22,15 +22,15 @@
 
 
 // Insert manufacturing things into the advertisement
-#define APP_COMPANY_IDENTIFIER          0x11BB                            /**< Company identifier I made up */
+#define APP_COMPANY_IDENTIFIER          0x12BB                            /**< Company identifier I made up */
 
 //#define APP_BEACON_INFO_LENGTH          0x09                              /**< Total length of information advertised by the Beacon. */
-#define APP_BEACON_INFO_LENGTH          22                              /**< Total length of information advertised by the Beacon. */
+#define APP_BEACON_INFO_LENGTH          21                              /**< Total length of information advertised by the Beacon. */
 #define APP_ADV_DATA_LENGTH             0x07                              /**< Length of manufacturer specific data in the advertisement. */
 #define APP_DEVICE_TYPE                 0x01                              /**< Just chose 0x01 */
 #define APP_BEACON_DATA                 0x73, 0x71, 0x75, 0x61, \
                                         0x6c, 0x6c                          // "squall"
-#define URL "http://tiny.cc/umhue01"
+#define URL "http://bit.ly/umhue07"
 #ifndef APP_SQUALL_ID
 #define APP_SQUALL_ID                   0x42
 #endif
