@@ -14,12 +14,16 @@
 
 #include "nrf_gpio.h"
 
+#ifndef DEVICE_NAME
 #define DEVICE_NAME    "squall"
-
+#endif
 
 #define LED_START      13
 #define LED_0          13
 #define LED_1          13
+	//  #define LED_2          22
+	// #define LED_3          23
+	// #define LED_4          24
 #define LED_STOP       13
 
 //#define BUTTON_START   16
@@ -32,6 +36,47 @@
 // bootloader mode.
 #define BOOTLOADER_CTRL_PIN  3
 #define BOOTLOADER_CTRL_PULL NRF_GPIO_PIN_PULLUP
+
+
+
+// #define BSP_LED_0      LED_1
+// #define BSP_LED_1      LED_2
+// #define BSP_LED_2      LED_3
+// #define BSP_LED_3      LED_4
+
+// #define BSP_LED_0_MASK (1<<BSP_LED_0)
+// #define BSP_LED_1_MASK (1<<BSP_LED_1)
+// #define BSP_LED_2_MASK (1<<BSP_LED_2)
+// #define BSP_LED_3_MASK (1<<BSP_LED_3)
+
+// #define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK | BSP_LED_3_MASK)
+// /* all LEDs are lit when GPIO is low */
+// #define LEDS_INV_MASK  LEDS_MASK
+
+// #define BUTTONS_NUMBER 4
+
+// #define BUTTON_START   17
+// #define BUTTON_1       17
+// #define BUTTON_2       18
+// #define BUTTON_3       19
+// #define BUTTON_4       20
+// #define BUTTON_STOP    20
+// #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
+
+// #define BUTTONS_LIST { BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4 }
+
+// #define BSP_BUTTON_0   BUTTON_1
+// #define BSP_BUTTON_1   BUTTON_2
+// #define BSP_BUTTON_2   BUTTON_3
+// #define BSP_BUTTON_3   BUTTON_4
+
+// #define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
+// #define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
+// #define BSP_BUTTON_2_MASK (1<<BSP_BUTTON_2)
+// #define BSP_BUTTON_3_MASK (1<<BSP_BUTTON_3)
+
+// #define BUTTONS_MASK   0x001E0000
+
 
 
 #define RX_PIN_NUMBER  28
