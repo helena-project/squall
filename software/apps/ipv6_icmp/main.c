@@ -97,6 +97,7 @@
 #include "ipv6_api.h"
 #include "icmp6_api.h"
 #include "udp_api.h"
+#include "nrf_temp.h"
 
 #define DEVICE_NAME                   "IPv6ICMP"                                                    /**< Device name used in BLE undirected advertisement. */
 
@@ -146,7 +147,7 @@ static bool                   m_leds_activate = false;
 static const ipv6_addr_t      all_node_multicast_addr   = {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
 static const ipv6_addr_t      all_router_multicast_addr = {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02}};
 static const ipv6_addr_t      me = {{0x26, 0x07, 0xf0, 0x18, 0x08, 0x00, 0x01, 0xee, 0x02, 0x00, 0x00, 0xff, 0xfe, 0x00, 0x00, 0xff}};
-
+//2607:f018:600:3:020c:29ff:fe3b:b2a5
 #define SERVER_IPV6_ADDRESS           0x26, 0x07, 0xf0, 0x18, 0x06, 0x00, 0x00, 0x03, \
                                       0x02, 0x0c, 0x29, 0xFF, 0xFE, 0x3b, 0xb2, 0xa5                /**< IPv6 address of the server node. */
 
@@ -408,39 +409,88 @@ static void leds_timer_handler(void * p_context)
     if (connected) {
         volatile int i;
         int j, k;
+        int len;
+
+        volatile int32_t temp;
+
+        char str[256];
+
+
+
+
         led_on(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        for (k=0; k<10000;k++) {
-            j = i;
-        }
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_off(ADVERTISING_LED);
-        led_on(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // for (k=0; k<10000;k++) {
+        //     j = i;
+        // }
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_off(ADVERTISING_LED);
+        // led_on(ADVERTISING_LED);
 
 
         iot_pbuffer_alloc_param_t   pbuff_param;
         iot_pbuffer_t             * p_buffer = NULL;
 
+        
+
+        
+
+        // p_buffer->p_payload[0] = '{';
+        // p_buffer->p_payload[1] = '"';
+        // p_buffer->p_payload[2] = 't';
+        // p_buffer->p_payload[2] = 'e';
+        // p_buffer->p_payload[2] = 'm';
+        // p_buffer->p_payload[2] = 'p';
+        // p_buffer->p_payload[2] = '"';
+        // p_buffer->p_payload[2] = ':';
+        // p_buffer->p_payload[2] = '"';
+        // p_buffer->p_payload[2] = '"';
+        // p_buffer->p_payload[2] = '"';
+        // p_buffer->p_payload[3] = 65 + ((count++)%65);
+        // p_buffer->p_payload[4] = '\n';
+
+
+        // TEMP
+
+        NRF_TEMP->TASKS_START = 1; /** Start the temperature measurement. */
+
+        /* Busy wait while temperature measurement is not finished, you can skip waiting if you enable interrupt for DATARDY event and read the result in the interrupt. */
+        /*lint -e{845} // A zero has been given as right argument to operator '|'" */
+        while (NRF_TEMP->EVENTS_DATARDY == 0)
+        {
+            // Do nothing.
+        }
+        NRF_TEMP->EVENTS_DATARDY = 0;
+
+        /**@note Workaround for PAN_028 rev2.0A anomaly 29 - TEMP: Stop task clears the TEMP register. */
+        temp = (nrf_temp_read() / 4);
+
+        /**@note Workaround for PAN_028 rev2.0A anomaly 30 - TEMP: Temp module analog front end does not power down when DATARDY event occurs. */
+        NRF_TEMP->TASKS_STOP = 1; /** Stop the temperature measurement. */
+
+        // len = snprintf(str, "{\"temp\":%i}", temp);
+        len = sprintf(str, "{\"temp\":10}");
+        len = sprintf(str, "{\"temp\":%i}", temp);
+
         pbuff_param.flags  = PBUFFER_FLAG_DEFAULT;
         pbuff_param.type   = UDP6_PACKET_TYPE;
-        pbuff_param.length = 5;
+        pbuff_param.length = len;
 
         // Allocate packet buffer.
         err_code = iot_pbuffer_allocate(&pbuff_param, &p_buffer);
         APP_ERROR_CHECK(err_code);
 
-        p_buffer->p_payload[0] = 'h';
-        p_buffer->p_payload[1] = 'i';
-        p_buffer->p_payload[2] = 'b';
-        p_buffer->p_payload[3] = 65 + ((count++)%65);
-        p_buffer->p_payload[4] = '\n';
+
+        // len = snprintf(str, "{\"temp\":%i}", temp);
+        memcpy(p_buffer->p_payload, str, len);
+
 
         // memcpy(p_buffer->p_payload, &packet.packet_seq_num[0], TEST_PACKET_NUM_LEN);
         // memcpy(p_buffer->p_payload+TEST_PACKET_NUM_LEN, &packet.packet_data[0], TEST_PACKET_DATA_LEN);
@@ -874,7 +924,8 @@ int main(void)
     // Initialize.
     app_trace_init();
     leds_init();
-	led_on(ADVERTISING_LED);
+	//led_on(ADVERTISING_LED);
+    nrf_temp_init();
     timers_init();
     gpiote_init();
     // buttons_init();

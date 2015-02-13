@@ -49,7 +49,7 @@ SDK_VERSION = iot
 USE_SOFTDEVICE = s110
 USE_BLE = 1
 
-SDK_PATH ?= $(HOME)/code/nrf51822_sdk/nrf51_iot/nrf51/
+SDK_PATH ?= $(HOME)/code/nrf51822_iot/Nordic/nrf51/
 TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ../../include
