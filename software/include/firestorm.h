@@ -1,18 +1,20 @@
-#ifndef SQUALL_H
-#define SQUALL_H
+#ifndef FIRESTORM_H
+#define FIRESTORM_H
 
 #include "nrf_gpio.h"
+#include "twi_master.h"
+
+#include "led.h"
 
 #ifndef DEVICE_NAME
-#define DEVICE_NAME    "squall"
+#define DEVICE_NAME    "firestorm"
 #endif
+
+
+
 
 #define LED_START      13
 #define LED_0          13
-#define LED_1          13
-	//  #define LED_2          22
-	// #define LED_3          23
-	// #define LED_4          24
 #define LED_STOP       13
 
 //#define BUTTON_START   16
@@ -66,8 +68,10 @@
 
 // #define BUTTONS_MASK   0x001E0000
 
-#define I2C_SCL_PIN   7
-#define I2C_SDA_PIN   8
+#define I2C_SCL_PIN   21
+#define I2C_SDA_PIN   22
+
+
 
 #define RX_PIN_NUMBER  28
 #define TX_PIN_NUMBER  29

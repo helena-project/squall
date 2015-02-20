@@ -195,8 +195,7 @@ static void power_manage(void)
 int main(void)
 {
     // Initialize.
-    led_init(ADVERTISING_LED);
-    led_off(ADVERTISING_LED);
+    platform_init();
 
     ble_stack_init();
 

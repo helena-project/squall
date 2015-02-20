@@ -16,7 +16,8 @@ BOARD = BOARD_$(TARGET_UPPER)
 
 USE_SOFTDEVICE = s110
 
-SDK_PATH ?= $(HOME)/code/nrf51822_sdk/sdk_6/nrf51822/
+SDK_VERSION = 7
+SDK_PATH ?= $(HOME)/code/nrf51822_sdk/sdk7/
 TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ../../include
