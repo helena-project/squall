@@ -18,7 +18,7 @@ USE_SOFTDEVICE = s110
 
 SDK_VERSION = 7
 SDK_PATH ?= $(HOME)/code/nrf51822_sdk/sdk7/
-TEMPLATE_PATH ?= $(HOME)/git/nrf51-pure-gcc-setup/template/
+TEMPLATE_PATH ?= ../../nrf51-pure-gcc-setup/template/
 
 LIBRARY_PATHS += ../../include
 SOURCE_PATHS += ../../src
