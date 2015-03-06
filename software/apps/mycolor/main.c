@@ -30,11 +30,9 @@
 #define APP_DEVICE_TYPE                 0x01                              /**< Just chose 0x01 */
 #define APP_BEACON_DATA                 0x73, 0x71, 0x75, 0x61, \
                                         0x6c, 0x6c                          // "squall"
-<<<<<<< HEAD
+
 #define URL "http://bit.ly/umhue07"
-=======
-#define URL "http://tiny.cc/umhue04"
->>>>>>> commit for demo
+
 #ifndef APP_SQUALL_ID
 #define APP_SQUALL_ID                   0x42
 #endif
