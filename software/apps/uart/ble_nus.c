@@ -109,6 +109,7 @@ static uint32_t read_char_add(ble_nus_t * p_nus, const ble_nus_init_t * p_nus_in
 
     memset(&char_md, 0, sizeof(char_md));
 
+    char_md.char_props.read   = 1;
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
