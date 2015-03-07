@@ -195,7 +195,7 @@ static void power_manage(void)
 int main(void)
 {
     // Initialize.
-    platform_init();
+    //platform_init();
 
     ble_stack_init();
 
