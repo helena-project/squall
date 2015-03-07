@@ -40,11 +40,13 @@
 #define BLE_UUID_NUS_SERVICE            0x0001                       /**< The UUID of the Nordic UART Service. */
 #define BLE_UUID_NUS_TX_CHARACTERISTIC  0x0002                       /**< The UUID of the TX Characteristic. */
 #define BLE_UUID_NUS_RX_CHARACTERISTIC  0x0003                       /**< The UUID of the RX Characteristic. */
+#define BLE_UUID_NUS_READ_CHARACTERISTIC 0x0004
 
 #define BLE_NUS_MAX_DATA_LEN            (GATT_MTU_SIZE_DEFAULT - 3)  /**< Maximum length of data (in bytes) that can be transmitted by the Nordic UART service module to the peer. */
 
 #define BLE_NUS_MAX_RX_CHAR_LEN         BLE_NUS_MAX_DATA_LEN         /**< Maximum length of the RX Characteristic (in bytes). */
 #define BLE_NUS_MAX_TX_CHAR_LEN         20                           /**< Maximum length of the TX Characteristic (in bytes). */
+#define BLE_NUS_MAX_READ_CHAR_LEN       500
 
 // Forward declaration of the ble_nus_t type. 
 typedef struct ble_nus_s ble_nus_t;
@@ -73,6 +75,7 @@ typedef struct ble_nus_s
     uint16_t                 service_handle;          /**< Handle of Nordic UART Service (as provided by the S110 SoftDevice). */
     ble_gatts_char_handles_t tx_handles;              /**< Handles related to the TX characteristic. (as provided by the S110 SoftDevice)*/
     ble_gatts_char_handles_t rx_handles;              /**< Handles related to the RX characteristic. (as provided by the S110 SoftDevice)*/
+    ble_gatts_char_handles_t read_handles;
     uint16_t                 conn_handle;             /**< Handle of the current connection (as provided by the S110 SoftDevice). This will be BLE_CONN_HANDLE_INVALID if not in a connection. */
     bool                     is_notification_enabled; /**< Variable to indicate if the peer has enabled notification of the RX characteristic.*/
     ble_nus_data_handler_t   data_handler;            /**< Event handler to be called for handling received data. */
@@ -119,6 +122,8 @@ void ble_nus_on_ble_evt(ble_nus_t * p_nus, ble_evt_t * p_ble_evt);
  *              It returns NRF_ERROR_NULL if the pointer p_nus is NULL.
  */
 uint32_t ble_nus_send_string(ble_nus_t * p_nus, uint8_t * string, uint16_t length);
+
+uint32_t ble_nus_set_read_string(ble_nus_t* p_nus, uint8_t* string, uint16_t length);
 
 #endif // BLE_NUS_H__
 
