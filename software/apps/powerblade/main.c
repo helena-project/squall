@@ -472,10 +472,17 @@ void UART0_IRQHandler(void)
     //uint32_t err_code;
 
     /**@snippet [Handling the data received over UART] */
+    static uint8_t POWERBLADE_DATA_LEN = 17;
 
     advertising_data[adv_index] = simple_uart_get();
     adv_index++;
 
+    // write one packet to advertisement at a time
+    if (adv_index >= POWERBLADE_DATA_LEN) {
+        adv_index = 0;
+    }
+
+    // safety check for array bounds
     if (adv_index > ADV_DATA_LENGTH) {
         adv_index = 0;
     }
