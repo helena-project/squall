@@ -559,6 +559,24 @@ int main(void)
     advertising_start();
     
     memset(advertising_data, 'a', ADV_DATA_LENGTH);
+    advertising_data[0] = 0;
+    advertising_data[1] = 1;
+    advertising_data[2] = 2;
+    advertising_data[3] = 3;
+    advertising_data[4] = 4;
+    advertising_data[5] = 5;
+    advertising_data[6] = 6;
+    advertising_data[7] = 7;
+    advertising_data[8] = 8;
+    advertising_data[9] = 9;
+    advertising_data[10] = 10;
+    advertising_data[11] = 11;
+    advertising_data[12] = 12;
+    advertising_data[13] = 13;
+    advertising_data[14] = 14;
+    advertising_data[15] = 15;
+    advertising_data[16] = 16;
+    advertising_data[17] = 17;
     update_advertisement();
 
     // Enter main loop
