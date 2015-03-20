@@ -39,6 +39,8 @@
 #include "bsp.h"
 #include "boards.h"
 
+void update_advertisement();
+
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
 
@@ -147,7 +149,7 @@ static void advertising_init(void)
     uint32_t                  err_code;
     ble_advdata_t advdata;
     ble_advdata_manuf_data_t manuf_specific_data;
-    ble_advdata_t scanrsp;
+    //ble_advdata_t scanrsp;
     uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
     //uint8_t       flags = BLE_GAP_ADV_FLAG_LE_GENERAL_DISC_MODE;
 
@@ -457,6 +459,13 @@ static void uart_init(void)
     /**@snippet [UART Initialization] */
 }
 
+static void uart_disable(void)
+{
+    NRF_UART0->TASKS_STOPTX = 1;
+    NRF_UART0->TASKS_STOPRX = 1;
+    NRF_UART0->ENABLE = (UART_ENABLE_ENABLE_Disabled << UART_ENABLE_ENABLE_Pos);
+}
+
 uint8_t reverse(uint8_t b) {
     b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
     b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
@@ -485,6 +494,9 @@ void UART0_IRQHandler(void)
     // write one packet to advertisement at a time
     if (adv_index >= POWERBLADE_DATA_LEN) {
         adv_index = 0;
+
+        // we only receive one packet per startup. Turn off UART
+        uart_disable();
 
         // packet received. Actually start advertising
         advertising_start();
