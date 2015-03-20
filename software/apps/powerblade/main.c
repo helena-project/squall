@@ -458,6 +458,12 @@ static void uart_init(void)
     /**@snippet [UART Initialization] */
 }
 
+uint8_t reverse(uint8_t b) {
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+    return b;
+}
 
 /**@brief   Function for handling UART interrupts.
  *
@@ -474,20 +480,22 @@ void UART0_IRQHandler(void)
     /**@snippet [Handling the data received over UART] */
     static uint8_t POWERBLADE_DATA_LEN = 17;
 
-    advertising_data[adv_index] = simple_uart_get();
+    advertising_data[adv_index] = reverse(simple_uart_get());
     adv_index++;
 
     // write one packet to advertisement at a time
     if (adv_index >= POWERBLADE_DATA_LEN) {
         adv_index = 0;
+
+        // packet received. Actually start advertising
+        advertising_start();
+        update_advertisement();
     }
 
     // safety check for array bounds
     if (adv_index > ADV_DATA_LENGTH) {
         adv_index = 0;
     }
-
-    update_advertisement();
 
     /*
     if ((data_array[adv_index - 1] == '\n') || (adv_index >= (BLE_NUS_MAX_DATA_LEN - 1)))
@@ -556,28 +564,8 @@ int main(void)
 
     simple_uart_putstring(start_string);
 
-    advertising_start();
-    
-    memset(advertising_data, 'a', ADV_DATA_LENGTH);
-    advertising_data[0] = 0;
-    advertising_data[1] = 1;
-    advertising_data[2] = 2;
-    advertising_data[3] = 3;
-    advertising_data[4] = 4;
-    advertising_data[5] = 5;
-    advertising_data[6] = 6;
-    advertising_data[7] = 7;
-    advertising_data[8] = 8;
-    advertising_data[9] = 9;
-    advertising_data[10] = 10;
-    advertising_data[11] = 11;
-    advertising_data[12] = 12;
-    advertising_data[13] = 13;
-    advertising_data[14] = 14;
-    advertising_data[15] = 15;
-    advertising_data[16] = 16;
-    advertising_data[17] = 17;
-    update_advertisement();
+    // init adv data to 0s. Advertising doesn't start until UART data is received
+    memset(advertising_data, 0, ADV_DATA_LENGTH);
 
     // Enter main loop
     for (;;)
