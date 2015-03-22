@@ -26,6 +26,7 @@
 #include "nordic_common.h"
 #include "nrf.h"
 #include "nrf51_bitfields.h"
+#include "nrf_gpio.h"
 #include "ble_hci.h"
 #include "ble_advdata.h"
 #include "ble_conn_params.h"
@@ -36,7 +37,7 @@
 #include "ble_nus.h"
 #include "simple_uart.h"
 #include "app_util_platform.h"
-#include "bsp.h"
+//#include "bsp.h"
 #include "boards.h"
 
 void update_advertisement();
@@ -57,8 +58,8 @@ void update_advertisement();
 
 #define APP_GPIOTE_MAX_USERS            1                                           /**< Maximum number of simultaneously gpiote users. */
 
-#define MIN_CONN_INTERVAL               16                                          /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
-#define MAX_CONN_INTERVAL               60                                          /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
+#define MIN_CONN_INTERVAL               6                                          /**< Minimum acceptable connection interval (7.5 ms), Connection interval uses 1.25 ms units. */
+#define MAX_CONN_INTERVAL               16                                          /**< Maximum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
 #define SLAVE_LATENCY                   0                                           /**< slave latency. */
 #define CONN_SUP_TIMEOUT                400                                         /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER)  /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
@@ -89,6 +90,8 @@ static ble_nus_t                        m_nus;                                  
 static uint8_t adv_index = 0;
 static uint8_t advertising_data[ADV_DATA_LENGTH];
 
+// GPIO Output pin to MSP430
+#define OUTPUT_PIN 13
 
 /**@brief       Assert macro callback function.
  *
@@ -310,8 +313,8 @@ static void advertising_start(void)
     err_code = sd_ble_gap_adv_start(&adv_params);
     APP_ERROR_CHECK(err_code);
 
-    err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
+    //APP_ERROR_CHECK(err_code);
 }
 
 
@@ -328,15 +331,16 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
+            //APP_ERROR_CHECK(err_code);
+            nrf_gpio_pin_set(OUTPUT_PIN);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
 
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+            //APP_ERROR_CHECK(err_code);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
 
             advertising_start();
@@ -377,14 +381,14 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         case BLE_GAP_EVT_TIMEOUT:
             if (p_ble_evt->evt.gap_evt.params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISEMENT)
             {
-                err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-                APP_ERROR_CHECK(err_code);
+                //err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+                //APP_ERROR_CHECK(err_code);
                 // Configure buttons with sense level low as wakeup source.
-                err_code = bsp_buttons_enable(1 << WAKEUP_BUTTON_ID);
-                APP_ERROR_CHECK(err_code);
+                //err_code = bsp_buttons_enable(1 << WAKEUP_BUTTON_ID);
+                //APP_ERROR_CHECK(err_code);
                 // Go to system-off mode (this function will not return; wakeup will cause a reset)
-                err_code = sd_power_system_off();
-                APP_ERROR_CHECK(err_code);
+                //err_code = sd_power_system_off();
+                //APP_ERROR_CHECK(err_code);
             }
             break;
 
@@ -496,6 +500,7 @@ void UART0_IRQHandler(void)
         adv_index = 0;
 
         // we only receive one packet per startup. Turn off UART
+        nrf_gpio_pin_clear(OUTPUT_PIN);
         uart_disable();
 
         // packet received. Actually start advertising
@@ -558,25 +563,33 @@ int main(void)
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, false);
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
     ble_stack_init();
+
+    // Start GPIO pin
+    nrf_gpio_cfg_output(OUTPUT_PIN);
+    nrf_gpio_pin_clear(OUTPUT_PIN);
+
+    //TODO: Pull in simple_uart code to change baudrate
     uart_init();
 
+    // init adv data to 0s. Advertising doesn't start until UART data is received
     memset(advertising_data, 0, ADV_DATA_LENGTH);
-    memcpy(advertising_data, "powerblade", strlen("powerblade"));
 
-    err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
-    APP_ERROR_CHECK(err_code);
-    err_code = bsp_buttons_enable(1 << WAKEUP_BUTTON_ID);
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
+    //APP_ERROR_CHECK(err_code);
+    //err_code = bsp_buttons_enable(1 << WAKEUP_BUTTON_ID);
+    //APP_ERROR_CHECK(err_code);
     gap_params_init();
     services_init();
     advertising_init();
     conn_params_init();
     sec_params_init();
 
-    simple_uart_putstring(start_string);
+    // To test device without UART, uncomment
+    //advertising_start();
+    //update_advertisement();
 
-    // init adv data to 0s. Advertising doesn't start until UART data is received
-    memset(advertising_data, 0, ADV_DATA_LENGTH);
+    // Ready to receive UART data
+    nrf_gpio_pin_set(OUTPUT_PIN);
 
     // Enter main loop
     for (;;)
