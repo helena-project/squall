@@ -89,6 +89,7 @@ static ble_nus_t                        m_nus;                                  
 #define ADV_DATA_LENGTH 0x14  // 0x17 Stolen from another example. Is this the maximum?
 static uint8_t adv_index = 0;
 static uint8_t advertising_data[ADV_DATA_LENGTH];
+static uint8_t num_connections = 0;
 
 // GPIO Output pin to MSP430
 #define OUTPUT_PIN 13
@@ -334,6 +335,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
             //APP_ERROR_CHECK(err_code);
             nrf_gpio_pin_set(OUTPUT_PIN);
+            num_connections++;
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
 
             break;
@@ -508,6 +510,9 @@ void UART0_IRQHandler(void)
         update_advertisement();
     }
 
+    // Append the number of connections
+    advertising_data[POWERBLADE_DATA_LEN] = num_connections;
+
     // safety check for array bounds
     if (adv_index > ADV_DATA_LENGTH) {
         adv_index = 0;
@@ -557,16 +562,16 @@ void update_advertisement() {
  */
 int main(void)
 {
+    // Started. GPIO low
+    nrf_gpio_pin_clear(OUTPUT_PIN);
+    nrf_gpio_cfg_output(OUTPUT_PIN);
+
     uint8_t start_string[] = START_STRING;
     uint32_t err_code;
     // Initialize
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, false);
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
     ble_stack_init();
-
-    // Start GPIO pin
-    nrf_gpio_cfg_output(OUTPUT_PIN);
-    nrf_gpio_pin_clear(OUTPUT_PIN);
 
     //TODO: Pull in simple_uart code to change baudrate
     uart_init();
@@ -589,6 +594,7 @@ int main(void)
     //update_advertisement();
 
     // Ready to receive UART data
+    num_connections = 0;
     nrf_gpio_pin_set(OUTPUT_PIN);
 
     // Enter main loop
