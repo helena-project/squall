@@ -492,7 +492,7 @@ void UART0_IRQHandler(void)
     //uint32_t err_code;
 
     /**@snippet [Handling the data received over UART] */
-    static uint8_t POWERBLADE_DATA_LEN = 17;
+    static uint8_t POWERBLADE_DATA_LEN = 19;
 
     advertising_data[adv_index] = reverse(simple_uart_get());
     adv_index++;
