@@ -23,7 +23,7 @@
 <layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
 <layer number="14" name="Route14" color="1" fill="6" visible="no" active="no"/>
 <layer number="15" name="Route15" color="4" fill="6" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="13" fill="1" visible="yes" active="yes"/>
@@ -183,7 +183,7 @@ Breakout</text>
 <wire x1="26.67" y1="-2.54" x2="26.67" y2="0" width="0" layer="151" curve="-180"/>
 <wire x1="0" y1="13.0175" x2="-1.27" y2="11.7475" width="0" layer="151" curve="-90"/>
 <wire x1="0" y1="7.9375" x2="-1.27" y2="9.2075" width="0" layer="151" curve="90"/>
-<polygon width="0" layer="29" pour="hatch">
+<polygon width="0" layer="29">
 <vertex x="31.496" y="6.858"/>
 <vertex x="38.1" y="6.858"/>
 <vertex x="38.1" y="0.254"/>
