@@ -25,7 +25,7 @@
 static ble_gap_sec_params_t             m_sec_params;
 
 //current connection handle
-static uint16_t 		m_conn_handle = BLE_CONN_HANDLE_INVALID; 
+static uint16_t 		m_conn_handle = BLE_CONN_HANDLE_INVALID;
 static ble_gap_adv_params_t m_adv_params;
 
 //module-private function declaration
@@ -72,7 +72,7 @@ void bleInit() {
 }
 
 static void advertisingStart(void) {
-	
+
 	//start advertising
     uint32_t             err_code;
     err_code = sd_ble_gap_adv_start(&m_adv_params);
@@ -97,7 +97,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 static void service_error_handler(uint32_t nrf_error)
 {
     APP_ERROR_HANDLER(nrf_error);
-} 
+}
 
 //initialize advertising
 static void advertising_init(void)
@@ -107,7 +107,7 @@ static void advertising_init(void)
     uint8_t       flags =  BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
 
-    ble_uuid_t adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; 
+    ble_uuid_t adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};
 
     // Build and set advertising data
     memset(&advdata, 0, sizeof(advdata));
@@ -125,8 +125,8 @@ static void advertising_init(void)
 	memset(&m_adv_params, 0, sizeof(m_adv_params));
 
 	m_adv_params.type				= BLE_GAP_ADV_TYPE_ADV_IND;
-	m_adv_params.p_peer_addr		= NULL; 
-	m_adv_params.fp					= BLE_GAP_ADV_FP_ANY; 
+	m_adv_params.p_peer_addr		= NULL;
+	m_adv_params.fp					= BLE_GAP_ADV_FP_ANY;
     m_adv_params.interval    		= APP_ADV_INTERVAL;
     m_adv_params.timeout     		= APP_ADV_TIMEOUT_IN_SECONDS;
 }
@@ -143,9 +143,9 @@ static void gap_params_init(void)
     uint32_t                err_code;
     ble_gap_conn_params_t   gap_conn_params;
     ble_gap_conn_sec_mode_t sec_mode;
-	
+
 	sd_ble_gap_tx_power_set(4);
-	
+
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     err_code = sd_ble_gap_device_name_set(&sec_mode,
@@ -278,10 +278,10 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
         case BLE_GAP_EVT_SEC_INFO_REQUEST:
             p_enc_info = &m_auth_status.periph_keys.enc_info;
-            if (p_enc_info->div == 
+            if (p_enc_info->div ==
 							p_ble_evt->evt.gap_evt.params.sec_info_request.div)
             {
-                err_code = sd_ble_gap_sec_info_reply(m_conn_handle, 
+                err_code = sd_ble_gap_sec_info_reply(m_conn_handle,
 															p_enc_info, NULL);
                 APP_ERROR_CHECK(err_code);
             }
@@ -335,24 +335,38 @@ static void ble_stack_init(void)
     uint32_t err_code;
 
     // Initialize the SoftDevice handler module.
-    SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, 
+    SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION,
 																		false);
 
-    // Enable BLE stack 
+    // Enable BLE stack
     ble_enable_params_t ble_enable_params;
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-    ble_enable_params.gatts_enable_params.service_changed = 
+    ble_enable_params.gatts_enable_params.service_changed =
 											IS_SRVC_CHANGED_CHARACT_PRESENT;
     err_code = sd_ble_enable(&ble_enable_params);
     APP_ERROR_CHECK(err_code);
-    
+
     //Register with the SoftDevice handler module for BLE events.
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
    	APP_ERROR_CHECK(err_code);
-    
+
     // Register with the SoftDevice handler module for BLE events.
 	err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
 	APP_ERROR_CHECK(err_code);
+
+    // Set the address of this BLEES / squall
+    {
+        ble_gap_addr_t gap_addr;
+
+        // Get the current original address
+        sd_ble_gap_address_get(&gap_addr);
+
+        // Set the new BLE address with the Michigan OUI
+        gap_addr.addr_type = BLE_GAP_ADDR_TYPE_PUBLIC;
+        memcpy(gap_addr.addr+2, MAC_ADDR+2, sizeof(gap_addr.addr)-2);
+        err_code = sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE, &gap_addr);
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 

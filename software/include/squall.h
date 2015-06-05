@@ -7,6 +7,9 @@
 #define DEVICE_NAME    "squall"
 #endif
 
+extern uint8_t MAC_ADDR[6] = {0x00, 0x00, 0x40, 0xe5, 0x98, 0xc0};
+
+
 #define LED_START      13
 #define LED_0          13
 #define LED_1          13

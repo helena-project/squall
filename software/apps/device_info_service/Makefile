@@ -13,31 +13,22 @@ APPLICATION_SRCS += app_util_platform.c
 APPLICATION_SRCS += ble_srv_common.c
 
 
-
-SOFTDEVICE = $(HOME)/Programs/Nordic/softdevices/s110/s110_nrf51822_7.1.0_softdevice.hex
-
 DEVICE = NRF51
 
-ifndef TARGET                                                                   
-    TARGET = SQUALL                                                             
-endif                                                                           
-                                                                                 
-TARGET_UPPER = $(shell echo $(TARGET) | tr a-z A-Z)                             
-TARGET_LOWER = $(shell echo $(TARGET) | tr A-Z a-z)                             
-BOARD = BOARD_$(TARGET_UPPER)                                                   
-                                                                                
+ifndef TARGET
+    TARGET = SQUALL
+endif
+
+TARGET_UPPER = $(shell echo $(TARGET) | tr a-z A-Z)
+TARGET_LOWER = $(shell echo $(TARGET) | tr A-Z a-z)
+BOARD = BOARD_$(TARGET_UPPER)
+
 USE_SOFTDEVICE = s110
 
 SDK_VERSION = 7
 
-#if SDK_VERSION = 6, point SDK_PATH to sdk/model/
-#if SDK_VERSION = 7, point SDK_PATH to sdk/
-
-ifeq ($(SDK_VERSION), 7)
-	SDK_PATH ?= $(HOME)/Programs/Nordic/sdk/
-else
-	SDK_PATH ?= $(HOME)/Programs/Nordic/sdk/nrf51822/
-endif
+SDK_PATH ?= $(HOME)/code/nrf51822_sdk/sdk7/
+SOFTDEVICE ?= $(HOME)/code/nrf51822_sdk/s110_nrf51822_7.1.0_softdevice.hex
 
 TEMPLATE_PATH ?= ../../nrf51-pure-gcc-setup/template/
 
