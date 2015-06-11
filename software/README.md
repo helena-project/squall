@@ -11,7 +11,7 @@ Setup
 Apparently they are better than the ones that ship with Nordic's SDK. They
 are also on github and can be modified as needed.
 
-        git clone https://github.com/hlnd/nrf51-pure-gcc-setup.git
+        git clone https://github.com/lab11/nrf51-pure-gcc-setup.git
 
 1. Make sure you have the [arm-none-eabi-gcc](https://launchpad.net/gcc-arm-embedded)
 toolchain. You just need the binaries for your platform.
