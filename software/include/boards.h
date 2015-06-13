@@ -21,6 +21,8 @@
 	#include "quitbit.h"
 #elif defined(BOARD_FIRESTORM)
 	#include "firestorm.h"
+#elif defined(BOARD_TORCH)
+	#include "torch.h"
 #else
 	#error "Board is not defined in boards.h"
 #endif
