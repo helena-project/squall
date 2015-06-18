@@ -11,7 +11,8 @@ APPLICATION_SRCS += ble_conn_params.c
 APPLICATION_SRCS += app_error.c
 APPLICATION_SRCS += app_util_platform.c
 APPLICATION_SRCS += ble_srv_common.c
-
+APPLICATION_SRCS += twi_hw_master.c
+APPLICATION_SRCS += led.c
 
 DEVICE = NRF51
 
