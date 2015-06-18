@@ -23,12 +23,14 @@ TARGET_UPPER = $(shell echo $(TARGET) | tr a-z A-Z)
 TARGET_LOWER = $(shell echo $(TARGET) | tr A-Z a-z)
 BOARD = BOARD_$(TARGET_UPPER)
 
+APPLICATION_SRCS += $(TARGET_LOWER).c
+
 USE_SOFTDEVICE = s110
 
 SDK_VERSION = 7
 
-SDK_PATH ?= $(HOME)/code/nrf51822_sdk/sdk7/
-SOFTDEVICE ?= $(HOME)/code/nrf51822_sdk/s110_nrf51822_7.1.0_softdevice.hex
+SDK_PATH ?= $(HOME)/code/nRF51_SDK_7_2_0/
+SOFTDEVICE ?= $(HOME)/code/s110_nrf51822_7.1.0_softdevice.hex
 
 TEMPLATE_PATH ?= ../../nrf51-pure-gcc-setup/template/
 
