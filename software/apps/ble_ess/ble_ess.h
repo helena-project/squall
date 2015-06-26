@@ -117,12 +117,11 @@ typedef struct
 } ble_ess_init_t;
 
 
-
 /**@brief ESS structure. This contains various status information for the service. */
 typedef struct ble_ess_s
 {
     //ble_ess_evt_handler_t         evt_handler;                    /**< Event handler to be called for handling events in the ESS. */
-    uint16_t                      service_handle;                 /**< Handle of ESS (as provided by the BLE stack). */
+    uint16_t                      ess_service_handle;                 /**< Handle of ESS (as provided by the BLE stack). */
     ble_gatts_char_handles_t      temp_char_handles;          /**< Handles related to the Temperature characteristic. */
 	ble_gatts_char_handles_t      pres_char_handles;          /**< Handles related to the Pressure characteristic. */
 	ble_gatts_char_handles_t      hum_char_handles;          /**< Handles related to the Humidity characteristic. */
@@ -131,6 +130,45 @@ typedef struct ble_ess_s
     uint16_t                      conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
 
 } ble_ess_t;
+
+
+/**@brief ES Measurement Descriptor */
+// This is only mandatory is multiple instances of an ESS Characteristic with the same UUID are supported; Otherwise, it is optional.
+/*
+typedef struct
+{
+    //insert bitfield for flags
+    uint8_t samp_func; // sampling function
+    uint24_t meas_per; //measurement period
+    uint24_t up_intv; //update interval
+    uint8_t app; // application
+    uint8_t	meas_unc; //measurement uncertainty
+
+} es_meas_des;
+*/
+
+
+/**@brief ES Trigger Setting Descriptor */
+//This is mandatory if notifications are supported. Otherwise, it is excluded.
+//Since notifications are optional, and in this version its function is not implemented, this descriptor will also not be implemented.
+/*
+typedef struct
+{
+    //octet?!
+
+} es_trig_set_des;
+*/
+
+/**@brief ES Configuration Descriptor */
+// Mandatory if multiple ES Trigger Setting descriptors are supported; excluded otherwise.
+// This this is a C2/C3 requirement, and notifications are not implemented in this version, this descriptor will also not be implemented.
+/*
+typedef struct
+{
+    //octet?!
+
+} es_config_des;
+*/
 
 
 /**@brief Function for initializing the ESSe.
