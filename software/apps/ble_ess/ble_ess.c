@@ -308,6 +308,7 @@ uint32_t ble_ess_on_pres_change(ble_ess_t * p_ess, uint8_t pres_state)
 uint32_t ble_ess_on_hum_change(ble_ess_t * p_ess, uint8_t hum_state)
 {
 
+
     ble_gatts_hvx_params_t params;
     uint16_t len = sizeof(hum_state);
     
