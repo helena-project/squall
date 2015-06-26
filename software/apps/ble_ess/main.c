@@ -1036,6 +1036,18 @@ static void pres_char_init(void)
 
 }
 
+/**@brief Function for initializing the humidity handler module.
+
+ */
+
+static void hum_char_init(void)
+
+{
+
+    
+
+}
+
 
 
 /**@brief Function for the Power manager.
