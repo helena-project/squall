@@ -89,9 +89,6 @@
 #include "ble_srv_common.h"
 
 
-
-//#define ESS_UUID_BASE {0x23, 0xD1, 0xBC, 0xEA, 0x5F, 0x78, 0x23, 0x15, 0xDE, 0xEF, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00}
-
 #define ESS_UUID_BASE {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
 #define ESS_UUID_SERVICE 0x181A
@@ -99,6 +96,9 @@
 #define ESS_UUID_TEMP_CHAR 0x2A6E
 
 #define ESS_UUID_PRES_CHAR 0x2A6D
+
+#define ESS_UUID_HUM_CHAR 0x2A6F
+
 
 // Forward declaration of the ble_ess_t type.
 typedef struct ble_ess_s ble_ess_t;
@@ -125,6 +125,7 @@ typedef struct ble_ess_s
     uint16_t                      service_handle;                 /**< Handle of ESS (as provided by the BLE stack). */
     ble_gatts_char_handles_t      temp_char_handles;          /**< Handles related to the Temperature characteristic. */
 	ble_gatts_char_handles_t      pres_char_handles;          /**< Handles related to the Pressure characteristic. */
+	ble_gatts_char_handles_t      hum_char_handles;          /**< Handles related to the Humidity characteristic. */
 	uint8_t                     uuid_type;
 	//uint8_t                       battery_level_last;             /**< Last Battery Level measurement passed to the Battery Service. */
     uint16_t                      conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
@@ -198,6 +199,8 @@ void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt);
 uint32_t ble_ess_on_temp_change(ble_ess_t * p_ess, uint8_t temp_state);
 
 uint32_t ble_ess_on_pres_change(ble_ess_t * p_ess, uint8_t pres_state);
+
+uint32_t ble_ess_on_hum_change(ble_ess_t * p_ess, uint8_t hum_state);
 
 #endif // BLE_ESS_H__
 
