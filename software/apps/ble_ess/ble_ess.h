@@ -126,6 +126,10 @@ typedef struct ble_ess_s
 	ble_gatts_char_handles_t      pres_char_handles;          /**< Handles related to the Pressure characteristic. */
 	ble_gatts_char_handles_t      hum_char_handles;           /**< Handles related to the Humidity characteristic. */
 
+	uint8_t *	temp_val_last;
+	uint8_t * pres_val_last;
+	uint8_t * hum_val_last;
+
 	uint16_t 		temp_trigger_handle;
 	uint16_t 		pres_trigger_handle;
 	uint16_t 		hum_trigger_handle;
@@ -219,6 +223,9 @@ uint32_t ess_char_set(ble_ess_t * p_ess,
 uint32_t ess_char_send(ble_ess_t * p_ess,
 					  ble_gatts_char_handles_t * ess_char_handles,
 					  uint16_t char_len);
+
+
+uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len);
 
 #endif // BLE_ESS_H__
 
