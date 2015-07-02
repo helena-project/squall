@@ -63,14 +63,14 @@
 
 #include "ble_gap.h"
 
- #include "ble_gatts.h"
+#include "ble_gatts.h"
 
 
- #include "squall.h"
+#include "squall.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
-#define DEVICE_NAME                     "squall_ess"                             /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "squall_ess_notif"                             /**< Name of device. Will be included in the advertising data. */
 
 
 #define APP_ADV_INTERVAL                64                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
@@ -143,7 +143,7 @@ static ble_ess_t                        m_ess;
 
 #define SCHED_QUEUE_SIZE                10                                          /**< Maximum number of events in the scheduler queue. */
 
-
+static bool     m_ess_meas_not_conf_pending = false; /** Flag to keep track of when a notification confirmation is pending */
 
 // Persistent storage system event handler
 
@@ -164,31 +164,29 @@ void pstorage_sys_event_handler (uint32_t p_evt);
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 
 {
-
+    
     // This call can be used for debug purposes during application development.
-
+    
     // @note CAUTION: Activating this code will write the stack to flash on an error.
-
+    
     //                This function should NOT be used in a final product.
-
+    
     //                It is intended STRICTLY for development/debugging purposes.
-
+    
     //                The flash write will happen EVEN if the radio is active, thus interrupting
-
+    
     //                any communication.
-
+    
     //                Use with care. Un-comment the line below to use.
-
+    
     ble_debug_assert_handler(error_code, line_num, p_file_name);
-
-
+    
+    
     // On assert, the system can only recover with a reset.
-
+    
     //NVIC_SystemReset();
-
+    
 }
-
-
 
 
 
@@ -207,9 +205,9 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 
 {
-
+    
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
-
+    
 }
 
 
@@ -218,35 +216,31 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  *
  * @details Initializes the timer module.
  */
-
 static void timers_init(void)
-
 {
-
+    
     // Initialize timer module, making it use the scheduler
-
+    
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
-
+    
     //uint32_t err_code;
-
+    
     // Create timers.
     /*
     err_code = app_timer_create(&m_temp_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                temp_meas_timeout_handler);
+    APP_TIMER_MODE_REPEATED,
+    temp_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
     err_code = app_timer_create(&m_hum_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                hum_meas_timeout_handler);
+    APP_TIMER_MODE_REPEATED,
+    hum_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
     err_code = app_timer_create(&m_pres_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                               pres_meas_timeout_handler);
+    APP_TIMER_MODE_REPEATED,
+    pres_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
     */
-
+    
 }
 
 
@@ -262,45 +256,27 @@ static void timers_init(void)
 static void gap_params_init(void)
 
 {
-
     uint32_t                err_code;
-
     ble_gap_conn_params_t   gap_conn_params;
-
     ble_gap_conn_sec_mode_t sec_mode;
-
-
+    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
-
-
+    
     err_code = sd_ble_gap_device_name_set(&sec_mode,
-
                                           (const uint8_t *)DEVICE_NAME,
-
                                           strlen(DEVICE_NAME));
-
     APP_ERROR_CHECK(err_code);
-
-
+    
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
-
+    
     gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-
     gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
-
     gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
-
-
+    
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-
     APP_ERROR_CHECK(err_code);
-
 }
-
-
 
 
 
@@ -309,56 +285,108 @@ static void gap_params_init(void)
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
  */
-
 static void advertising_init(void)
-
 {
-
     volatile uint32_t      err_code;
-
     ble_advdata_t advdata;
-
     ble_advdata_t scanrsp;
-
     uint8_t flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
-
     ble_uuid_t adv_uuids[] = {
         {ESS_UUID_SERVICE, m_ess.uuid_type}
     };
-
-
-    // Build and set advertising data
-
-    memset(&advdata, 0, sizeof(advdata));
-
-
-    advdata.name_type               = BLE_ADVDATA_FULL_NAME;
-
-    advdata.include_appearance      = true;
-
-    advdata.flags.size              = sizeof(flags);
-
-    advdata.flags.p_data            = &flags;
-
-
-
-    memset(&scanrsp, 0, sizeof(scanrsp));
-
-    scanrsp.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
-
-    scanrsp.uuids_complete.p_uuids  = adv_uuids;
-
     
-
+    // Build and set advertising data
+    memset(&advdata, 0, sizeof(advdata));
+    
+    advdata.name_type               = BLE_ADVDATA_FULL_NAME;
+    advdata.include_appearance      = true;
+    advdata.flags.size              = sizeof(flags);
+    advdata.flags.p_data            = &flags;
+    
+    
+    memset(&scanrsp, 0, sizeof(scanrsp));
+    scanrsp.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
+    scanrsp.uuids_complete.p_uuids  = adv_uuids;
+    
     err_code = ble_advdata_set(&advdata, &scanrsp);
     //err_code = ble_advdata_set(&advdata, NULL);
     //err_code = ble_advdata_set(NULL, &scanrsp);
-
-
+    
     APP_ERROR_CHECK(err_code);
+}
+
+
+/**@brief Function for handling the ESS events.
+ *
+ * @details This function will be called for all ESS events which are passed to
+ *          the application.
+ *
+ * @param[in]   p_ess   Environmental Sensing Service structure.
+ * @param[in]   p_evt   Event received from the ESS.
+ */
+static void on_ess_evt(ble_ess_t * p_ess, ble_ess_evt_t * p_evt)
+{
+    switch (p_evt->evt_type)
+    {
+        case BLE_ESS_EVT_NOTIFICATION_ENABLED:
+            // Notification has been enabled, send a single ESS measurement.
+            ess_meas_send(p_ess);
+            break;
+            
+        case BLE_ESS_EVT_NOTIFICATION_CONFIRMED:
+            m_ess_meas_not_conf_pending = false;
+            break;
+            
+        default:
+            // No implementation needed.
+            break;
+    }
+}
+
+/**@brief Function for initializing the temperature.
+ */
+static void temp_char_init(ble_ess_init_t * p_ess_init)
+{
+    int16_t init_data = 123;
+    p_ess_init->init_temp_data = init_data;
+    
+    //p_ess_init->is_temp_notify_supported = true;
+    
+    //Initialize trigger settings if notifications are supported
+    p_ess_init->temp_trigger_condition = TRIG_FIXED_INTERVAL;
+    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(1);
 
 }
 
+/**@brief Function for initializing the pressure.
+ */
+static void pres_char_init(ble_ess_init_t * p_ess_init)
+{
+    uint32_t init_data = 456;
+    p_ess_init->init_pres_data = init_data;
+    
+    //p_ess_init->is_pres_notify_supported = true;
+    
+    //Initialize trigger settings if notifications are supported
+    p_ess_init->temp_trigger_condition = TRIG_FIXED_INTERVAL;
+    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(1);
+    
+}
+
+/**@brief Function for initializing the humidity.
+ */
+static void hum_char_init(ble_ess_init_t * p_ess_init)
+{
+    uint16_t init_data = 789;
+    p_ess_init->init_hum_data = init_data;
+    
+    //p_ess_init->is_hum_notify_supported = true;
+    
+    //Initialize trigger settings if notifications are supported
+    p_ess_init->hum_trigger_condition = TRIG_FIXED_INTERVAL;
+    p_ess_init->hum_trigger_var_buffer = (uint8_t*)(1);
+    
+}
 
 
 /**@brief Function for initializing services that will be used by the application.
@@ -367,14 +395,32 @@ static void services_init(void)
 {
     uint32_t err_code;
     ble_ess_init_t ess_init;
+        
+    //Initialize the Environmental Sensing Service
     memset(&ess_init, 0 , sizeof(ess_init));
+    
+    ess_init.evt_handler = on_ess_evt;
+    ess_init.is_notify_supported = true;
 
-    ess_init.evt_handler = NULL;
+    //ess_init.evt_handler = NULL;
 
+    temp_char_init(&ess_init); //initialize temp
+    pres_char_init(&ess_init); //initialize pres
+    hum_char_init(&ess_init); //initialize hum
+    
+    // Here the sec level for the ESS can be changed/increased.
+    /*
+    BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&bps_init.bps_meas_attr_md.cccd_write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_meas_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_meas_attr_md.write_perm);
+     
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bps_init.bps_feature_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_feature_attr_md.write_perm);
+    */
+    
     err_code = ble_ess_init(&m_ess, &ess_init);
     APP_ERROR_CHECK(err_code);
 }
-
 
 
 /**@brief Function for initializing security parameters.
@@ -388,7 +434,6 @@ static void sec_params_init(void)
     m_sec_params.min_key_size = SEC_PARAM_MIN_KEY_SIZE;
     m_sec_params.max_key_size = SEC_PARAM_MAX_KEY_SIZE;
 }
-
 
 
 /**@brief Function for handling the Connection Parameters Module.
@@ -432,80 +477,60 @@ static void conn_params_init(void)
     ble_conn_params_init_t cp_init;
     memset(&cp_init, 0, sizeof(cp_init));
     cp_init.p_conn_params                  = NULL;
-
+    
     cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
-
+    
     cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
-
+    
     cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
-
+    
     cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-
+    
     cp_init.disconnect_on_fail             = false;
-
+    
     cp_init.evt_handler                    = on_conn_params_evt;
-
+    
     cp_init.error_handler                  = conn_params_error_handler;
-
-
+    
+    
     err_code = ble_conn_params_init(&cp_init);
-
+    
     APP_ERROR_CHECK(err_code);
-
+    
 }
-
-
 
 
 
 /**@brief Function for starting timers.
  */
-
 static void timers_start(void)
 
 {
-
+    
 }
 
 
 
 /**@brief Function for starting advertising.
  */
-
 static void advertising_start(void)
-
 {
-
     uint32_t             err_code;
-
     ble_gap_adv_params_t adv_params;
-
-
+    
     // Start advertising
-
     memset(&adv_params, 0, sizeof(adv_params));
-
-
+    
     adv_params.type        = BLE_GAP_ADV_TYPE_ADV_IND;
-
     adv_params.p_peer_addr = NULL;
-
     adv_params.fp          = BLE_GAP_ADV_FP_ANY;
-
     adv_params.interval    = APP_ADV_INTERVAL;
-
     adv_params.timeout     = APP_ADV_TIMEOUT_IN_SECONDS;
-
-
+    
     err_code = sd_ble_gap_adv_start(&adv_params);
-
     APP_ERROR_CHECK(err_code);
-
     //nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
-
 }
-
-
 
 
 
@@ -515,150 +540,81 @@ static void advertising_start(void)
  */
 
 static void on_ble_evt(ble_evt_t * p_ble_evt)
-
 {
-
     uint32_t                         err_code;
-
     static ble_gap_evt_auth_status_t m_auth_status;
-
     static ble_gap_master_id_t p_master_id;
-
     //static ble_gap_sec_keyset_t keys_exchanged;
-
-
+    
     switch (p_ble_evt->header.evt_id)
-
     {
-
         case BLE_GAP_EVT_CONNECTED:
-
             err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
-
             APP_ERROR_CHECK(err_code);
-
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-
-
             //err_code = app_button_enable();
-
             //APP_ERROR_CHECK(err_code);
-
             break;
-
-
+            
         case BLE_GAP_EVT_DISCONNECTED:
-
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-
             APP_ERROR_CHECK(err_code);
-
             advertising_start();
-
             break;
-
-
+            
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
-
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
-
                                                    &m_sec_params);
-
             APP_ERROR_CHECK(err_code);
-
             break;
-
-
+            
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
-
             err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0);
-
             APP_ERROR_CHECK(err_code);
-
             break;
-
-
+            
         case BLE_GAP_EVT_AUTH_STATUS:
-
             m_auth_status = p_ble_evt->evt.gap_evt.params.auth_status;
-
             break;
-
-
+            
         case BLE_GAP_EVT_SEC_INFO_REQUEST:
-
             //p_enc_info = keys_exchanged.keys_central.p_enc_key
-
             if (p_master_id.ediv == p_ble_evt->evt.gap_evt.params.sec_info_request.div)
-
             {
-
                 //note: second param is confusing...
                 err_code = sd_ble_gap_sec_info_reply(m_conn_handle, NULL, NULL);
-
                 APP_ERROR_CHECK(err_code);
-
                 p_master_id.ediv = p_ble_evt->evt.gap_evt.params.sec_info_request.div;
-
             }
-
             else
-
             {
-
                 // No keys found for this device
-
                 err_code = sd_ble_gap_sec_info_reply(m_conn_handle, NULL, NULL);
-
                 APP_ERROR_CHECK(err_code);
-
             }
-
             break;
-
-
+            
         case BLE_GAP_EVT_TIMEOUT:
-
             if (p_ble_evt->evt.gap_evt.params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISEMENT)
-
             {
-
                 //nrf_gpio_pin_clear(ADVERTISING_LED_PIN_NO);
-
-
                 // Configure buttons with sense level low as wakeup source.
-
                 //nrf_gpio_cfg_sense_input(WAKEUP_BUTTON_PIN,
-
-                                        // BUTTON_PULL,
-
-                                       //  NRF_GPIO_PIN_SENSE_LOW);
-
+                // BUTTON_PULL,
+                //  NRF_GPIO_PIN_SENSE_LOW);
                 
-
                 // Go to system-off mode (this function will not return; wakeup will cause a reset)
-
                 err_code = sd_power_system_off();
-
                 APP_ERROR_CHECK(err_code);
-
             }
-
             break;
-
-
+            
         default:
-
             // No implementation needed.
-
             break;
-
     }
-
 }
 
 
@@ -676,13 +632,13 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 
 {
-
+    
     on_ble_evt(p_ble_evt);
-
+    
     ble_conn_params_on_ble_evt(p_ble_evt);
-
+    
     ble_ess_on_ble_evt(&m_ess, p_ble_evt);
-
+    
 }
 
 
@@ -700,9 +656,9 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 static void sys_evt_dispatch(uint32_t sys_evt)
 
 {
-
+    
     pstorage_sys_event_handler(sys_evt);
-
+    
 }
 
 
@@ -717,54 +673,54 @@ static void sys_evt_dispatch(uint32_t sys_evt)
 static void ble_stack_init(void)
 
 {
-
+    
     uint32_t err_code;
-
-
+    
+    
     // Initialize the SoftDevice handler module.
-
+    
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
-
-
+    
+    
     // Enable BLE stack
-
+    
     ble_enable_params_t ble_enable_params;
-
+    
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-
+    
     ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
-
+    
     err_code = sd_ble_enable(&ble_enable_params);
-
+    
     APP_ERROR_CHECK(err_code);
-
-
+    
+    
     ble_gap_addr_t addr;
-
     
-
+    
+    
     err_code = sd_ble_gap_address_get(&addr);
-
-    APP_ERROR_CHECK(err_code);
-
-    sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE, &addr);
-
-    APP_ERROR_CHECK(err_code);
-
-    // Subscribe for BLE events.
-
-    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
-
-    APP_ERROR_CHECK(err_code);
-
     
-
-    // Register with the SoftDevice handler module for BLE events.
-
-    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-
     APP_ERROR_CHECK(err_code);
-
+    
+    sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE, &addr);
+    
+    APP_ERROR_CHECK(err_code);
+    
+    // Subscribe for BLE events.
+    
+    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
+    
+    APP_ERROR_CHECK(err_code);
+    
+    
+    
+    // Register with the SoftDevice handler module for BLE events.
+    
+    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    
+    APP_ERROR_CHECK(err_code);
+    
 }
 
 
@@ -777,28 +733,28 @@ static void ble_stack_init(void)
 static void scheduler_init(void)
 
 {
-
+    
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-
+    
 }
 
 
 
 
 /*
-static void temp_char_handler(uint8_t pin_no, uint8_t temp_action)
-{
-    uint32_t temp_val_default = 80;
-    
-    ble_ess_on_temp_change(temp_val_default);
-}
-static void pres_char_handler(void)
-{
-    uint32_t pres_val_default = 3;
-    
-    ble_ess_on_pres_change(pres_val_default);
-}
-*/
+ static void temp_char_handler(uint8_t pin_no, uint8_t temp_action)
+ {
+ uint32_t temp_val_default = 80;
+ 
+ ble_ess_on_temp_change(temp_val_default);
+ }
+ static void pres_char_handler(void)
+ {
+ uint32_t pres_val_default = 3;
+ 
+ ble_ess_on_pres_change(pres_val_default);
+ }
+ */
 
 
 /**@brief Function for initializing the GPIOTE handler module.
@@ -807,49 +763,11 @@ static void pres_char_handler(void)
 static void gpiote_init(void)
 
 {
-
+    
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
-
-}
-
-
-
-
-
-/**@brief Function for initializing the temperature handler module.
- */
-
-static void temp_char_init(void)
-
-{
-
     
-
 }
 
-
-
-/**@brief Function for initializing the pressure handler module.
- */
-
-static void pres_char_init(void)
-
-{
-
-    
-
-}
-
-/**@brief Function for initializing the humidity handler module.
- */
-
-static void hum_char_init(void)
-
-{
-
-    
-
-}
 
 
 
@@ -859,11 +777,11 @@ static void hum_char_init(void)
 static void power_manage(void)
 
 {
-
+    
     uint32_t err_code = sd_app_evt_wait();
-
+    
     APP_ERROR_CHECK(err_code);
-
+    
 }
 
 
@@ -876,51 +794,51 @@ static void power_manage(void)
 int main(void)
 
 {
-
+    
     // Initialize
-
+    
     //leds_init();
-
+    
     timers_init();
-
+    
     gpiote_init();
-
+    
     //buttons_init();
-
+    
     ble_stack_init();
-
+    
     scheduler_init();
-
+    
     gap_params_init();
-
+    
     services_init();
-
+    
     advertising_init();
-
+    
     conn_params_init();
-
+    
     sec_params_init();
-
-
+    
+    
     // Start execution
-
+    
     timers_start();
-
+    
     advertising_start();
-
-
+    
+    
     // Enter main loop
-
+    
     for (;;)
-
+        
     {
-
+        
         app_sched_execute();
-
+        
         power_manage();
-
+        
     }
-
+    
 }
 
 
