@@ -8,6 +8,12 @@
 
 #include "app_util.h"
 
+#define INVALID_TEMP_LEVEL 0xFFFF
+
+#define INVALID_PRES_LEVEL 0xFFFFFFFF
+
+#define INVALID_HUM_LEVEL 0xFFFF
+
 
 
 /**@brief Function for handling the Connect event.
@@ -84,6 +90,15 @@ void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
     }
 }
 
+static uint8_t encode_buffer(uint8_t * p_encoded_buffer, const uint8_t * trigger_condition, const uint8_t * trigger_var_buff){
+    uint8_t len = 0;
+    p_encoded_buffer[len++] = *trigger_condition;
+    p_encoded_buffer[len++] = *trigger_var_buff;
+
+    return len;
+
+}
+
 /**@brief Function for adding a pressure characteristic.
  *
  * @param[in]   p_ess        Environmental Service structure.
@@ -133,8 +148,8 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     
     /***** set characteristic properties *****/
     char_md.char_props.read   = 1; // mandatory
-    char_md.char_props.notify = 1;
-    //char_md.char_props.notify = p_ess_init->is_notify_supported; // optional
+    //char_md.char_props.notify = 1;
+    char_md.char_props.notify = p_ess_init->is_notify_supported; // optional
     p_ess->is_notify_supported = char_md.char_props.notify;
     //char_md.char_props.write   = 0; // excluded
     //char_md.char_props.write_wo_resp   = 0; // excluded
@@ -198,39 +213,22 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     /***** If notification is enabled, add the trigger setting ***/
     //Note: Trigger setting should have been initialized in p_ess_init
 
-    /*
-    if (p_ess_init->is_notify_supported == true){
-        
-        memset(&trig_des, 0, sizeof(trig_des));
-        
-        BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
-        trig_des.desc_uuid = &ble_uuid;
-        trig_des.var_len = max_char_len;
-        trig_des.condition = trigger_condition;
-        trig_des.var_buff = trigger_var_buff;
-        
-        uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
-        uint16_t *ble_uuid_ac = (uint16_t*)&id;
-        
-        err_code = sd_ble_gatts_descriptor_add(ESS_CHAR_UUID,
-                                          &trig_des,
-                                          &ble_uuid_ac);
-    
-    } */
-
-
     if (p_ess_init->is_notify_supported == true){
         
         memset(&trigger_des, 0, sizeof(trigger_des));
         
+        //uint16_t init_len = encode_buffer(trigger_des.p_value, &trigger_condition, trigger_var_buff);
+
         BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
         trigger_des.p_uuid = &ble_uuid;
         trigger_des.p_attr_md = NULL;
         trigger_des.init_len = MAX_TRIG_LEN;
+        //trigger_des.init_len = init_len;
+
         trigger_des.init_offs = 0;
         trigger_des.max_len = MAX_TRIG_LEN;
         printf("hi");
-        trigger_des.p_value = (uint8_t*)(trigger_condition | (*trigger_var_buff >> 16) );
+        trigger_des.p_value = (uint8_t)(trigger_condition | (*trigger_var_buff >> 16) );
         
         //uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
         //uint16_t *ble_uuid_ac = (uint16_t*)&id;
@@ -274,7 +272,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     ble_uuid_t ble_uuid;
     
     // Initialize service structure
-    //p_ess->evt_handler               = p_ess_init->evt_handler;
+    p_ess->evt_handler               = p_ess_init->evt_handler;
     //p_ess->evt_handler               = NULL;
 
     p_ess->conn_handle               = BLE_CONN_HANDLE_INVALID;
@@ -310,6 +308,10 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     
     //Initial data pointer
     uint8_t *init_data_ptr;
+    *(p_ess->temp_val_last) = INVALID_TEMP_LEVEL;
+    *(p_ess->pres_val_last) = INVALID_PRES_LEVEL;
+    *(p_ess->hum_val_last) = INVALID_HUM_LEVEL;
+
     
     //Add temperature characteristic
     init_data_ptr = (uint8_t*)&(p_ess_init->init_temp_data);
@@ -442,4 +444,50 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
 
     
     return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
+}
+
+
+uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len)
+{
+    uint32_t err_code = NRF_SUCCESS;
+
+    if (*ess_meas_val != *ess_meas_val_last)
+    {
+        uint16_t len = char_len;
+        // Save new battery value
+        *ess_meas_val_last = *ess_meas_val;
+
+        // Update database
+        err_code = sd_ble_gatts_value_set(ess_char_handles->value_handle,
+                                          0,
+                                          &char_len,
+                                          ess_meas_val);
+        if (err_code != NRF_SUCCESS)
+        {
+            return err_code;
+        }
+
+        // Send value if connected and notifying
+        if ((p_ess->conn_handle != BLE_CONN_HANDLE_INVALID) && p_ess->is_notify_supported)
+        {
+            ble_gatts_hvx_params_t hvx_params;
+
+            memset(&hvx_params, 0, sizeof(hvx_params));
+            len = sizeof(uint8_t);
+
+            hvx_params.handle = ess_char_handles->value_handle;
+            hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+            hvx_params.offset = 0;
+            hvx_params.p_len  = &len;
+            hvx_params.p_data = ess_meas_val;
+
+            err_code = sd_ble_gatts_hvx(p_ess->conn_handle, &hvx_params);
+        }
+        else
+        {
+            err_code = NRF_ERROR_INVALID_STATE;
+        }
+    }
+
+    return err_code;
 }
