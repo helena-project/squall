@@ -1,4 +1,3 @@
-
 #include "ble_ess.h"
 
 #include <string.h>
@@ -8,8 +7,6 @@
 #include "ble_srv_common.h"
 
 #include "app_util.h"
-
-
 
 
 
@@ -35,45 +32,56 @@ static void on_disconnect(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
     p_ess->conn_handle = BLE_CONN_HANDLE_INVALID;
 }
 
+static bool is_char_value_handle(ble_gatts_evt_hvc_t * p_hvc, ble_ess_t * p_ess){
+    if ((p_hvc->handle == p_ess->temp_char_handles.value_handle) ||
+        (p_hvc->handle == p_ess->pres_char_handles.value_handle) ||
+        (p_hvc->handle == p_ess->hum_char_handles.value_handle) ){
+        return true;
+    }
+    return false;
+}
+
+
+/**@brief Function for handling the HVC event.
+ *
+ * @details Handles HVC events from the BLE stack.
+ *
+ * @param[in]   p_ess       ESS structure.
+ * @param[in]   p_ble_evt   Event received from the BLE stack.
+ */
+static void on_hvc(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
+{
+    ble_gatts_evt_hvc_t * p_hvc = &p_ble_evt->evt.gatts_evt.params.hvc;
+    
+    if (is_char_value_handle(p_hvc, p_ess))
+    {
+        ble_ess_evt_t evt;
+        
+        evt.evt_type = BLE_ESS_EVT_NOTIFICATION_CONFIRMED;
+        p_ess->evt_handler(p_ess, &evt);
+    }
+}
 
 
 void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
-
 {
-    
     switch (p_ble_evt->header.evt_id)
-    
     {
-            
         case BLE_GAP_EVT_CONNECTED:
-            
             on_connect(p_ess, p_ble_evt);
-            
             break;
-            
             
         case BLE_GAP_EVT_DISCONNECTED:
-            
             on_disconnect(p_ess, p_ble_evt);
-            
             break;
             
-            
-            //case BLE_GATTS_EVT_WRITE:
-            
-            //    on_write(p_ess, p_ble_evt);
-            
-            //    break;
-            
+        case BLE_GATTS_EVT_HVC:
+            on_hvc(p_ess, p_ble_evt);
             
         default:
-            
             // No implementation needed.
-            
             break;
-            
     }
-    
 }
 
 /**@brief Function for adding a pressure characteristic.
@@ -89,7 +97,7 @@ void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
  *          a) The Characteristic Properties
  *          b) The Characteristic Value Handle
  *          c) The Characteristc UUID
- *       
+ *
  *   2) Characteristic Value Attribute
  *
  *   And sometimes a third attribute:
@@ -97,51 +105,60 @@ void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
  *       - If used, this must be placed after the characteristc value attribute
  *
  *   These 2 (or 3) attributes together make up the characteristic description
-*/
-static uint32_t ess_char_add(ble_ess_t * p_ess, 
+ */
+static uint32_t ess_char_add(ble_ess_t * p_ess,
                             const ble_ess_init_t * p_ess_init,
                             int ESS_CHAR_UUID,
                             ble_gatts_char_handles_t * ess_char_handles,
                             uint8_t * fake_data_p,
                             uint16_t init_char_len,
-                            uint16_t max_char_len)
+                            uint16_t max_char_len,
+                            uint8_t trigger_condition,
+                            uint8_t * trigger_var_buff,
+                            uint16_t * trigger_handle)
 {
     
+    uint32_t err_code;
     
     ble_gatts_char_md_t char_md; // char metadata (part of Characteristic Properties)
     ble_gatts_attr_t    attr_char_value; //Characteristic Value Attribute- the actual data!
     ble_uuid_t          ble_uuid;
     ble_gatts_attr_md_t attr_md; // attribute metadata
     ble_gatts_attr_md_t cccd_md;
+    //ess_trig_set_desc_t trig_des;
     //ess_meas_desc_t     attr_char_desc;
+    ble_gatts_attr_t    trigger_des;
     
     memset(&char_md, 0, sizeof(char_md));
     
     /***** set characteristic properties *****/
     char_md.char_props.read   = 1; // mandatory
-    char_md.char_props.write   = 0; // excluded
-    char_md.char_props.write_wo_resp   = 0; // excluded
-    char_md.char_props.auth_signed_wr   = 0; // excluded
-    char_md.char_props.notify = 1; // optional
-    char_md.char_props.indicate   = 0; // excluded
-    char_md.char_props.broadcast   = 0; // excluded
+    char_md.char_props.notify = 1;
+    //char_md.char_props.notify = p_ess_init->is_notify_supported; // optional
+    p_ess->is_notify_supported = char_md.char_props.notify;
+    //char_md.char_props.write   = 0; // excluded
+    //char_md.char_props.write_wo_resp   = 0; // excluded
+    //char_md.char_props.auth_signed_wr   = 0; // excluded
+    //char_md.char_props.indicate   = 0; // excluded
+    //char_md.char_props.broadcast   = 0; // excluded
     
     /***** external properties are optional ****/
     char_md.char_ext_props.reliable_wr = 0; // not mentioned in spec?
     char_md.char_ext_props.wr_aux = 0; // mentioned as past of normal properties?
     
-    char_md.p_char_user_desc  = NULL; // null if user description is not required () optional)
     
-
     /******** if notify is enabled ******/
     memset(&cccd_md, 0, sizeof(cccd_md));
+    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+    //cccd_md.write_perm = p_ess_init->ess_meas_attr_md.cccd_write_perm;
     cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
-    char_md.p_char_pf         = NULL; // presentation format structure not mentioned not included in spec, so null
-    char_md.p_user_desc_md    = NULL; // not mentioned in spec
-    char_md.p_cccd_md         = &cccd_md; // not mentioned in spec
-    char_md.p_sccd_md         = NULL; // not mentioned in spec
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = &cccd_md;
+    char_md.p_sccd_md         = NULL;
+    char_md.p_char_user_desc  = NULL;
     
     ble_uuid.type = p_ess->uuid_type;
     ble_uuid.uuid = ESS_CHAR_UUID;
@@ -160,6 +177,8 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     /* 2) The Characteristic Value Attribute consists of the actual data */
     /* for now, we will input fake data */
     memset(&attr_char_value, 0, sizeof(attr_char_value));
+    
+    
     attr_char_value.p_uuid    = &ble_uuid; //the type for this attribute is always the same UUID found in the characteristic's declaration value field
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = init_char_len;
@@ -168,16 +187,64 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     attr_char_value.p_value   = fake_data_p;
     
     //return
-    return sd_ble_gatts_characteristic_add(p_ess->ess_service_handle,
+    err_code = sd_ble_gatts_characteristic_add(p_ess->ess_service_handle,
                                            &char_md,
                                            &attr_char_value,
                                            ess_char_handles);
+    
+    if (err_code != NRF_SUCCESS){ return err_code; }
+
+    
+    /***** If notification is enabled, add the trigger setting ***/
+    //Note: Trigger setting should have been initialized in p_ess_init
 
     /*
-    memset(&attr_char_desc, 0, sizeof(attr_char_desc));
+    if (p_ess_init->is_notify_supported == true){
+        
+        memset(&trig_des, 0, sizeof(trig_des));
+        
+        BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
+        trig_des.desc_uuid = &ble_uuid;
+        trig_des.var_len = max_char_len;
+        trig_des.condition = trigger_condition;
+        trig_des.var_buff = trigger_var_buff;
+        
+        uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
+        uint16_t *ble_uuid_ac = (uint16_t*)&id;
+        
+        err_code = sd_ble_gatts_descriptor_add(ESS_CHAR_UUID,
+                                          &trig_des,
+                                          &ble_uuid_ac);
     
-    BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_MEAS_DESC);
+    } */
 
+
+    if (p_ess_init->is_notify_supported == true){
+        
+        memset(&trigger_des, 0, sizeof(trigger_des));
+        
+        BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
+        trigger_des.p_uuid = &ble_uuid;
+        trigger_des.p_attr_md = NULL;
+        trigger_des.init_len = MAX_TRIG_LEN;
+        trigger_des.init_offs = 0;
+        trigger_des.max_len = MAX_TRIG_LEN;
+        printf("hi");
+        trigger_des.p_value = (uint8_t*)(trigger_condition | (*trigger_var_buff >> 16) );
+        
+        //uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
+        //uint16_t *ble_uuid_ac = (uint16_t*)&id;
+        
+        err_code = sd_ble_gatts_descriptor_add(BLE_GATT_HANDLE_INVALID, &trigger_des, trigger_handle);
+    
+    }
+    
+    if (err_code != NRF_SUCCESS){ return err_code; }
+    
+    /*
+    memset(&attr_char_desc, 0, sizeof(attr_char_desc));
+     
+    BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_MEAS_DESC);
     attr_char_desc.desc_uuid = &ble_uuid;
     attr_char_desc.flags = 0;
     attr_char_desc.samp_func = 0;
@@ -185,151 +252,194 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     attr_char_desc.up_intv = 0;
     attr_char_desc.app = 0;
     attr_char_desc.meas_unc = 0;
-
     uint16_t id = ESS_UUID_ES_MEAS_DESC;
     uint16_t *ble_uuid_ac = (uint16_t*)&id;
-
+     
     return sd_ble_gatts_descriptor_add(ESS_CHAR_UUID,
-                                &attr_char_desc,
-                               &ble_uuid_ac);
-    */                           
+    &attr_char_desc,
+    &ble_uuid_ac);
+     
+    */
     
-}
+    return NRF_SUCCESS;
 
+}
 
 
 uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
 
 {
     
-    uint32_t   err_code;
+    volatile uint32_t   err_code;
     ble_uuid_t ble_uuid;
     
     // Initialize service structure
-    
     //p_ess->evt_handler               = p_ess_init->evt_handler;
+    //p_ess->evt_handler               = NULL;
+
     p_ess->conn_handle               = BLE_CONN_HANDLE_INVALID;
     
     
+    //BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_SERVICE);
+
+    //p_ess->uuid_type = ble_uuid.type;
+
     // Add service
     ble_uuid128_t base_uuid = {ESS_UUID_BASE};
+    
     err_code = sd_ble_uuid_vs_add(&base_uuid, &p_ess->uuid_type);
+
+
+
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
-    }
-    
+    } 
     
     ble_uuid.type = p_ess->uuid_type;
     ble_uuid.uuid = ESS_UUID_SERVICE;
     
+
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
                                         &ble_uuid,
                                         &p_ess->ess_service_handle);
-    
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
     
-    /*
-    err_code = temp_char_add(p_ess, p_ess_init);
+    //Initial data pointer
+    uint8_t *init_data_ptr;
+    
+    //Add temperature characteristic
+    init_data_ptr = (uint8_t*)&(p_ess_init->init_temp_data);
+    
+    err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_TEMP_CHAR, &p_ess->temp_char_handles, init_data_ptr, INIT_TEMP_LEN, MAX_TEMP_LEN, p_ess_init->temp_trigger_condition, p_ess_init->temp_trigger_var_buffer, &p_ess->temp_trigger_handle);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
     
-    err_code = hum_char_add(p_ess, p_ess_init);
-    if (err_code != NRF_SUCCESS)
-    {
-        return err_code;
-    }
-
-    err_code = pres_char_add(p_ess, p_ess_init);
-    if (err_code != NRF_SUCCESS)
-    {
-        return err_code;
-    }
-    */
-
-    uint8_t *fake_data_ptr;
+    // Add pressure characteristic
+    init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
-    int16_t fake_data_t = 123;
-    fake_data_ptr = (uint8_t*)&fake_data_t;
-
-     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_TEMP_CHAR, &p_ess->temp_char_handles, fake_data_ptr, INIT_TEMP_LEN, MAX_TEMP_LEN);
-     if (err_code != NRF_SUCCESS)
-     {
-     return err_code;
-     }
-    uint32_t fake_data_pr = 456;
-    fake_data_ptr = (uint8_t*)&fake_data_pr;
-
-     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_PRES_CHAR, &p_ess->pres_char_handles, fake_data_ptr, INIT_PRES_LEN, MAX_PRES_LEN);
-     if (err_code != NRF_SUCCESS)
-     {
-     return err_code;
-     }
-
-    uint16_t fake_data_h = 789;
-    fake_data_ptr = (uint8_t*)&fake_data_h;
-
-     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_HUM_CHAR, &p_ess->hum_char_handles, fake_data_ptr, INIT_HUM_LEN, MAX_HUM_LEN);
-     if (err_code != NRF_SUCCESS)
-     {
-     return err_code;
-     }
-     
+    err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_PRES_CHAR, &p_ess->pres_char_handles, init_data_ptr, INIT_PRES_LEN, MAX_PRES_LEN, p_ess_init->pres_trigger_condition, p_ess_init->pres_trigger_var_buffer, &p_ess->pres_trigger_handle);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
+    // Add humidity characteristic
+    init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
+    
+    err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_HUM_CHAR, &p_ess->hum_char_handles, init_data_ptr, INIT_HUM_LEN, MAX_HUM_LEN, p_ess_init->hum_trigger_condition, p_ess_init->hum_trigger_var_buffer, &p_ess->hum_trigger_handle);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
     
     return NRF_SUCCESS;
     
 }
 
-uint32_t ble_ess_on_temp_change(ble_ess_t * p_ess, uint8_t temp_state)
-{
+uint32_t ess_meas_set(ble_ess_t * p_ess){
+        
+    uint32_t err_code;
+    uint8_t * fake_data_p = (uint8_t*)(0x01);
+
+
+    err_code = ess_char_set(p_ess, &p_ess->temp_char_handles, 2, fake_data_p);
     
-    ble_gatts_hvx_params_t params;
-    uint16_t len = sizeof(temp_state);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
     
-    memset(&params, 0, sizeof(params));
-    params.type = BLE_GATT_HVX_NOTIFICATION;
-    params.handle = p_ess->temp_char_handles.value_handle;
-    params.p_data = &temp_state;
-    params.p_len = &len;
+    err_code = ess_char_set(p_ess, &p_ess->pres_char_handles, 4, fake_data_p);
     
-    return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
-    //return sd_ble_gatts_value_set() = 80;
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
+    err_code = ess_char_set(p_ess, &p_ess->hum_char_handles, 2, fake_data_p);
+    
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
+    return NRF_SUCCESS;
+    
 }
 
-uint32_t ble_ess_on_pres_change(ble_ess_t * p_ess, uint8_t pres_state)
-{
+uint32_t ess_meas_send(ble_ess_t * p_ess){
     
-    ble_gatts_hvx_params_t params;
-    uint16_t len = sizeof(pres_state);
+    uint32_t err_code;
+    err_code = ess_char_send(p_ess, &p_ess->temp_char_handles, 2);
     
-    memset(&params, 0, sizeof(params));
-    params.type = BLE_GATT_HVX_NOTIFICATION;
-    params.handle = p_ess->pres_char_handles.value_handle;
-    params.p_data = &pres_state;
-    params.p_len = &len;
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
     
-    return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
-    //return sd_ble_gatts_value_set() = 80;
+    err_code = ess_char_send(p_ess, &p_ess->pres_char_handles, 4);
+    
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
+    err_code = ess_char_send(p_ess, &p_ess->hum_char_handles, 2);
+    
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
 }
 
-uint32_t ble_ess_on_hum_change(ble_ess_t * p_ess, uint8_t hum_state)
+
+uint32_t ess_char_set(ble_ess_t * p_ess,
+                    ble_gatts_char_handles_t * ess_char_handles,
+                    uint16_t  ess_char_len,
+                    uint8_t * ess_char_value_buff )
 {
     
+    uint8_t *new_ess_char_value_buff;
+    *(new_ess_char_value_buff) = *(ess_char_value_buff) + 1;
+    
+    return sd_ble_gatts_value_set(ess_char_handles->value_handle,
+                                 0, &ess_char_len,
+                                 new_ess_char_value_buff);
+}
+
+uint32_t ess_char_send(ble_ess_t * p_ess,
+                      ble_gatts_char_handles_t * ess_char_handles,
+                      uint16_t char_len)
+{
+    uint32_t   err_code;
+    uint8_t * p_data_buff;
+    uint16_t * ess_char_len = (uint16_t*)&char_len;
+    
+    err_code = sd_ble_gatts_value_get(ess_char_handles->value_handle,
+                                     0,
+                                     ess_char_len,
+                                     p_data_buff);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
     
     ble_gatts_hvx_params_t params;
-    uint16_t len = sizeof(hum_state);
-    
     memset(&params, 0, sizeof(params));
     params.type = BLE_GATT_HVX_NOTIFICATION;
-    params.handle = p_ess->hum_char_handles.value_handle;
-    params.p_data = &hum_state;
-    params.p_len = &len;
+    params.handle = ess_char_handles->value_handle;
+    params.p_len = &char_len;
+    params.p_data = p_data_buff;
+
     
     return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
-    //return sd_ble_gatts_value_set() = 80;
 }
