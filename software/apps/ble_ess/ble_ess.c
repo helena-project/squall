@@ -94,9 +94,9 @@ static uint8_t encode_buffer(uint8_t * p_encoded_buffer, const uint8_t * trigger
     uint8_t len = 0;
     p_encoded_buffer[len++] = *trigger_condition;
     p_encoded_buffer[len++] = *trigger_var_buff;
-
+    
     return len;
-
+    
 }
 
 /**@brief Function for adding a pressure characteristic.
@@ -203,38 +203,38 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     
     //return
     err_code = sd_ble_gatts_characteristic_add(p_ess->ess_service_handle,
-                                           &char_md,
-                                           &attr_char_value,
-                                           ess_char_handles);
+                                              &char_md,
+                                              &attr_char_value,
+                                              ess_char_handles);
     
     if (err_code != NRF_SUCCESS){ return err_code; }
-
+    
     
     /***** If notification is enabled, add the trigger setting ***/
     //Note: Trigger setting should have been initialized in p_ess_init
-
+    
     if (p_ess_init->is_notify_supported == true){
         
         memset(&trigger_des, 0, sizeof(trigger_des));
         
         //uint16_t init_len = encode_buffer(trigger_des.p_value, &trigger_condition, trigger_var_buff);
-
+        
         BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
         trigger_des.p_uuid = &ble_uuid;
         trigger_des.p_attr_md = NULL;
         trigger_des.init_len = MAX_TRIG_LEN;
         //trigger_des.init_len = init_len;
-
+        
         trigger_des.init_offs = 0;
         trigger_des.max_len = MAX_TRIG_LEN;
-        printf("hi");
+        //printf("hi");
         trigger_des.p_value = (uint8_t)(trigger_condition | (*trigger_var_buff >> 16) );
         
         //uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
         //uint16_t *ble_uuid_ac = (uint16_t*)&id;
         
         err_code = sd_ble_gatts_descriptor_add(BLE_GATT_HANDLE_INVALID, &trigger_des, trigger_handle);
-    
+        
     }
     
     if (err_code != NRF_SUCCESS){ return err_code; }
@@ -260,7 +260,7 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     */
     
     return NRF_SUCCESS;
-
+    
 }
 
 
@@ -274,30 +274,30 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     // Initialize service structure
     p_ess->evt_handler               = p_ess_init->evt_handler;
     //p_ess->evt_handler               = NULL;
-
+    
     p_ess->conn_handle               = BLE_CONN_HANDLE_INVALID;
     
     
     //BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_SERVICE);
-
+    
     //p_ess->uuid_type = ble_uuid.type;
-
+    
     // Add service
     ble_uuid128_t base_uuid = {ESS_UUID_BASE};
     
     err_code = sd_ble_uuid_vs_add(&base_uuid, &p_ess->uuid_type);
-
-
-
+    
+    
+    
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
-    } 
+    }
     
     ble_uuid.type = p_ess->uuid_type;
     ble_uuid.uuid = ESS_UUID_SERVICE;
     
-
+    
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
                                         &ble_uuid,
                                         &p_ess->ess_service_handle);
@@ -311,7 +311,9 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     *(p_ess->temp_val_last) = INVALID_TEMP_LEVEL;
     *(p_ess->pres_val_last) = INVALID_PRES_LEVEL;
     *(p_ess->hum_val_last) = INVALID_HUM_LEVEL;
-
+    (p_ess->temp_val_last) = (uint8_t*)&(p_ess_init->init_temp_data);
+    (p_ess->pres_val_last) = (uint8_t*)&(p_ess_init->init_pres_data);
+    (p_ess->hum_val_last) = (uint8_t*)&(p_ess_init->init_hum_data);
     
     //Add temperature characteristic
     init_data_ptr = (uint8_t*)&(p_ess_init->init_temp_data);
@@ -322,6 +324,8 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
         return err_code;
     }
     
+    //printf("hi");
+
     // Add pressure characteristic
     init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
@@ -346,11 +350,11 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
 }
 
 uint32_t ess_meas_set(ble_ess_t * p_ess){
-        
+    
     uint32_t err_code;
     uint8_t * fake_data_p = (uint8_t*)(0x01);
-
-
+    
+    
     err_code = ess_char_set(p_ess, &p_ess->temp_char_handles, 2, fake_data_p);
     
     if (err_code != NRF_SUCCESS)
@@ -399,15 +403,15 @@ uint32_t ess_meas_send(ble_ess_t * p_ess){
     {
         return err_code;
     }
-
+    
     return NRF_SUCCESS;
 }
 
 
 uint32_t ess_char_set(ble_ess_t * p_ess,
-                    ble_gatts_char_handles_t * ess_char_handles,
-                    uint16_t  ess_char_len,
-                    uint8_t * ess_char_value_buff )
+                     ble_gatts_char_handles_t * ess_char_handles,
+                     uint16_t  ess_char_len,
+                     uint8_t * ess_char_value_buff )
 {
     
     uint8_t *new_ess_char_value_buff;
@@ -441,7 +445,7 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
     params.handle = ess_char_handles->value_handle;
     params.p_len = &char_len;
     params.p_data = p_data_buff;
-
+    
     
     return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
 }
@@ -456,7 +460,7 @@ uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *
         uint16_t len = char_len;
         // Save new battery value
         *ess_meas_val_last = *ess_meas_val;
-
+        
         // Update database
         err_code = sd_ble_gatts_value_set(ess_char_handles->value_handle,
                                           0,
@@ -466,28 +470,33 @@ uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *
         {
             return err_code;
         }
-
+        
         // Send value if connected and notifying
         if ((p_ess->conn_handle != BLE_CONN_HANDLE_INVALID) && p_ess->is_notify_supported)
         {
-            ble_gatts_hvx_params_t hvx_params;
 
-            memset(&hvx_params, 0, sizeof(hvx_params));
-            len = sizeof(uint8_t);
 
-            hvx_params.handle = ess_char_handles->value_handle;
-            hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
-            hvx_params.offset = 0;
-            hvx_params.p_len  = &len;
-            hvx_params.p_data = ess_meas_val;
+                //send the notification
+                ble_gatts_hvx_params_t hvx_params;
+                
+                memset(&hvx_params, 0, sizeof(hvx_params));
+                len = sizeof(uint8_t);
+                
+                hvx_params.handle = ess_char_handles->value_handle;
+                hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+                hvx_params.offset = 0;
+                hvx_params.p_len  = &len;
+                hvx_params.p_data = ess_meas_val;
+                
 
-            err_code = sd_ble_gatts_hvx(p_ess->conn_handle, &hvx_params);
+                err_code = sd_ble_gatts_hvx(p_ess->conn_handle, &hvx_params);
+            
         }
         else
         {
             err_code = NRF_ERROR_INVALID_STATE;
         }
     }
-
+    
     return err_code;
 }

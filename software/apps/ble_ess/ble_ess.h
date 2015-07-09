@@ -108,32 +108,31 @@ typedef struct
 	
 	uint8_t		hum_trigger_condition;
 	uint8_t*	hum_trigger_var_buffer;
-    bool						 is_notify_supported;		/**< Determines if notifications are supported */
-	//bool						 is_temp_notify_supported;		/**< Determines if notifications are supported */
-    //bool						 is_pres_notify_supported;		/**< Determines if notifications are supported */
-    //bool						 is_hum_notify_supported;		/**< Determines if notifications are supported */
+    bool						is_notify_supported;		/**< Determines if notifications are supported */
+	//bool						is_temp_notify_supported;		/**< Determines if notifications are supported */
+    //bool						is_pres_notify_supported;		/**< Determines if notifications are supported */
+    //bool						is_hum_notify_supported;		/**< Determines if notifications are supported */
 	
 } ble_ess_init_t;
-
 
 /**@brief ESS structure. This contains various status information for the service. */
 typedef struct ble_ess_s
 {
     ble_ess_evt_handler_t         evt_handler;              /**< Event handler to be called for handling events in the ESS. */
-    bool						 is_notify_supported;		/**< TRUE if notifications are supported */
+    bool						is_notify_supported;		/**< TRUE if notifications are supported */
     uint16_t                      ess_service_handle;         /**< Handle of ESS (as provided by the BLE stack). */
     ble_gatts_char_handles_t      temp_char_handles;          /**< Handles related to the Temperature characteristic. */
 	ble_gatts_char_handles_t      pres_char_handles;          /**< Handles related to the Pressure characteristic. */
 	ble_gatts_char_handles_t      hum_char_handles;           /**< Handles related to the Humidity characteristic. */
-
+	
 	uint8_t *	temp_val_last;
 	uint8_t * pres_val_last;
 	uint8_t * hum_val_last;
-
+	
 	uint16_t 		temp_trigger_handle;
 	uint16_t 		pres_trigger_handle;
 	uint16_t 		hum_trigger_handle;
-
+	
 	uint8_t                       uuid_type;
     uint16_t                      conn_handle;                /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
     
@@ -155,17 +154,17 @@ typedef struct ess_trig_set_desc_s
 /**@brief ESS Measurement Descriptor */
 // This is only mandatory is multiple instances of an ESS Characteristic with the same UUID are supported; Otherwise, it is optional.
 /*
-typedef struct ess_meas_des_s
-{
- 	ble_uuid_t* desc_uuid;
- 	int flags : 16; // insert bitfield for field
- 	uint8_t samp_func; // sampling function
- 	unsigned int meas_per : 24; //measurement period
- 	unsigned int up_intv : 24; //update interval
- 	uint8_t app; // application
- 	uint8_t	meas_unc; //measurement uncertainty
-} ess_meas_desc_t;
-*/
+ typedef struct ess_meas_des_s
+ {
+ ble_uuid_t* desc_uuid;
+ int flags : 16; // insert bitfield for field
+ uint8_t samp_func; // sampling function
+ unsigned int meas_per : 24; //measurement period
+ unsigned int up_intv : 24; //update interval
+ uint8_t app; // application
+ uint8_t	meas_unc; //measurement uncertainty
+ } ess_meas_desc_t;
+ */
 
 /**@brief ESS Configuration Descriptor */
 // Mandatory if multiple ES Trigger Setting descriptors are supported; excluded otherwise.
@@ -226,6 +225,7 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
 
 
 uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len);
+
 
 #endif // BLE_ESS_H__
 

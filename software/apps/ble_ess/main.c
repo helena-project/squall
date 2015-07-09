@@ -141,7 +141,7 @@
 #define HUM_LEVEL_INCREMENT     100
 #define MAX_TEMP_LEVEL          100000000
 #define MIN_TEMP_LEVEL          123
-#define MAX_PRES_LEVEL          100000000    
+#define MAX_PRES_LEVEL          100000000
 #define MIN_PRES_LEVEL          456
 #define MAX_HUM_LEVEL           100000000
 #define MIN_HUM_LEVEL           789
@@ -155,27 +155,25 @@ static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;
 
 static ble_ess_t                        m_ess;
 
-static ble_sensorsim_cfg_t                   m_temp_sim_cfg;                         /**< Battery Level sensor simulator configuration. */
-static ble_sensorsim_state_t                 m_temp_sim_state;                       /**< Battery Level sensor simulator state. */
+static ble_sensorsim_cfg_t                   m_temp_sim_cfg;                         /**< Temperature sensor simulator configuration. */
+static ble_sensorsim_state_t                 m_temp_sim_state;                       /**< Temperature sensor simulator state. */
 
-static ble_sensorsim_cfg_t                   m_pres_sim_cfg;                         /**< Battery Level sensor simulator configuration. */
-static ble_sensorsim_state_t                 m_pres_sim_state;                       /**< Battery Level sensor simulator state. */
+static ble_sensorsim_cfg_t                   m_pres_sim_cfg;                         /**< Pressure sensor simulator configuration. */
+static ble_sensorsim_state_t                 m_pres_sim_state;                       /**< Pressure sensor simulator state. */
 
-static ble_sensorsim_cfg_t                   m_hum_sim_cfg;                         /**< Battery Level sensor simulator configuration. */
-static ble_sensorsim_state_t                 m_hum_sim_state;                       /**< Battery Level sensor simulator state. */
+static ble_sensorsim_cfg_t                   m_hum_sim_cfg;                         /**< Humidity sensor simulator configuration. */
+static ble_sensorsim_state_t                 m_hum_sim_state;                       /**< Humidity sensor simulator state. */
 
-static app_timer_id_t                        m_ess_timer_id;                        /**< Battery timer. */
+static app_timer_id_t                        m_ess_timer_id;                        /**< ESS timer. */
 
 static bool     m_ess_meas_not_conf_pending = false; /** Flag to keep track of when a notification confirmation is pending */
 
+static bool                                  m_memory_access_in_progress = false;       /**< Flag to keep track of ongoing operations on persistent memory. */
 
 
 
 
 // Persistent storage system event handler
-
-
-
 void pstorage_sys_event_handler (uint32_t p_evt);
 
 
@@ -189,75 +187,55 @@ void pstorage_sys_event_handler (uint32_t p_evt);
  * @param[in] line_num    Line number where the handler is called.
  * @param[in] p_file_name Pointer to the file name.
  */
-
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
-
 {
-    
     // This call can be used for debug purposes during application development.
-    
     // @note CAUTION: Activating this code will write the stack to flash on an error.
-    
     //                This function should NOT be used in a final product.
-    
     //                It is intended STRICTLY for development/debugging purposes.
-    
     //                The flash write will happen EVEN if the radio is active, thus interrupting
-    
     //                any communication.
-    
     //                Use with care. Un-comment the line below to use.
-    
     ble_debug_assert_handler(error_code, line_num, p_file_name);
     
-    
     // On assert, the system can only recover with a reset.
-    
     //NVIC_SystemReset();
-    
 }
 
-/**@brief Function for populating simulated blood pressure measurements.
+/**@brief Function for populating simulated ess measurement.
  */
 /*
-static void ess_sim_measurement(ble_ess_meas_t * p_meas)
-{
-    static ble_date_time_t s_time_stamp = { 2012, 12, 5, 11, 05, 03 };
-    static uint8_t         s_ndx        = 0;
-
-    //p_meas->blood_pressure_units_in_kpa       = false;
-    p_meas->time_stamp_present                = (s_ndx == 0) || (s_ndx == 2);
-    //p_meas->pulse_rate_present                = (s_ndx == 0) || (s_ndx == 1);
-    //p_meas->user_id_present                   = false;
-    //p_meas->measurement_status_present        = false;
-
-    p_meas->temp = m_ess_meas_sim_val[s_ndx].temp;
-    p_meas->pres  = m_ess_meas_sim_val[s_ndx].pres;
-    p_meas->hum = m_ess_meas_sim_val[s_ndx].hum;
-
-
-    p_meas->time_stamp = s_time_stamp;
-
-    // Update index to simulated measurements.
-    s_ndx++;
-    if (s_ndx == NUM_SIM_MEAS_VALUES)
-    {
-        s_ndx = 0;
-    }
-
-    // Update simulated time stamp.
-    s_time_stamp.seconds += 27;
-    if (s_time_stamp.seconds > 59)
-    {
-        s_time_stamp.seconds -= 60;
-
-        s_time_stamp.minutes++;
-        if (s_time_stamp.minutes > 59)
-        {
-            s_time_stamp.minutes = 0;
-        }
-    }
-} */
+ static void ess_sim_measurement(ble_ess_meas_t * p_meas)
+ {
+ static ble_date_time_t s_time_stamp = { 2012, 12, 5, 11, 05, 03 };
+ static uint8_t         s_ndx        = 0;
+ //p_meas->blood_pressure_units_in_kpa       = false;
+ p_meas->time_stamp_present                = (s_ndx == 0) || (s_ndx == 2);
+ //p_meas->pulse_rate_present                = (s_ndx == 0) || (s_ndx == 1);
+ //p_meas->user_id_present                   = false;
+ //p_meas->measurement_status_present        = false;
+ p_meas->temp = m_ess_meas_sim_val[s_ndx].temp;
+ p_meas->pres  = m_ess_meas_sim_val[s_ndx].pres;
+ p_meas->hum = m_ess_meas_sim_val[s_ndx].hum;
+ p_meas->time_stamp = s_time_stamp;
+ // Update index to simulated measurements.
+ s_ndx++;
+ if (s_ndx == NUM_SIM_MEAS_VALUES)
+ {
+ s_ndx = 0;
+ }
+ // Update simulated time stamp.
+ s_time_stamp.seconds += 27;
+ if (s_time_stamp.seconds > 59)
+ {
+ s_time_stamp.seconds -= 60;
+ s_time_stamp.minutes++;
+ if (s_time_stamp.minutes > 59)
+ {
+ s_time_stamp.minutes = 0;
+ }
+ }
+ } */
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -270,13 +248,9 @@ static void ess_sim_measurement(ble_ess_meas_t * p_meas)
  * @param[in]   line_num   Line number of the failing ASSERT call.
  * @param[in]   file_name  File name of the failing ASSERT call.
  */
-
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
-
 {
-    
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
-    
 }
 
 
@@ -290,13 +264,21 @@ static void ess_update(void)
     uint8_t * temp_meas_val;
     uint8_t  * pres_meas_val;
     uint8_t  * hum_meas_val;
-
+    
+    int16_t sim_temp_meas;
+    uint32_t sim_pres_meas;
+    uint16_t sim_hum_meas;
+    
 
     //ess_sensorsim_measure(&m_ess, &meas_values);
-    temp_meas_val = (uint8_t*)(ble_sensorsim_measure(&m_temp_sim_state, &m_temp_sim_cfg));
+    sim_temp_meas = (int16_t)(ble_sensorsim_measure(&m_temp_sim_state, &m_temp_sim_cfg));
+    temp_meas_val = (uint8_t*)(&sim_temp_meas);
+    
+    printf("%d", *temp_meas_val);
+
 
     err_code = ble_ess_char_value_update(&m_ess, &(m_ess.temp_char_handles), (m_ess.temp_val_last), temp_meas_val, MAX_TEMP_LEN);
-
+    
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -306,12 +288,13 @@ static void ess_update(void)
     {
         APP_ERROR_HANDLER(err_code);
     }
-
+    
     //ess_sensorsim_measure(&m_ess, &meas_values);
-    pres_meas_val = (uint8_t*)(ble_sensorsim_measure(&m_pres_sim_state, &m_pres_sim_cfg));
-
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_TEMP_LEN);
-
+    sim_pres_meas = (uint32_t)(ble_sensorsim_measure(&m_pres_sim_state, &m_pres_sim_cfg));
+    pres_meas_val = (uint8_t*)(&sim_pres_meas);
+    
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_PRES_LEN);
+    
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -321,13 +304,14 @@ static void ess_update(void)
     {
         APP_ERROR_HANDLER(err_code);
     }
-
-
-        //ess_sensorsim_measure(&m_ess, &meas_values);
-    hum_meas_val = (uint8_t*)(ble_sensorsim_measure(&m_hum_sim_state, &m_hum_sim_cfg));
-
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_TEMP_LEN);
-
+    
+    
+    //ess_sensorsim_measure(&m_ess, &meas_values);
+    sim_hum_meas = (uint16_t)(ble_sensorsim_measure(&m_hum_sim_state, &m_hum_sim_cfg));
+    hum_meas_val = (uint8_t*)(&sim_hum_meas);
+    
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_HUM_LEN);
+    
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -337,9 +321,9 @@ static void ess_update(void)
     {
         APP_ERROR_HANDLER(err_code);
     }
-
-
-
+    
+    
+    
 }
 
 
@@ -359,27 +343,31 @@ static void ess_meas_timeout_handler(void * p_context)
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module.
- */
+ 
+ * Parameters for APP_TIMER_INIT:
+ * [in] PRESCALER   Value of the RTC1 PRESCALER register. This will decide the timer tick rate. Set to 0 for no prescaling.
+ * [in] MAX_TIMERS  Maximum number of timers that can be created at any given time.
+ * [in] OP_QUEUES_SIZE  Size of queues holding timer operations that are pending execution.
+ * [in] USE_SCHEDULER   TRUE if the application is using the event scheduler, FALSE otherwise.
+ * Note:
+ * Since this macro allocates a buffer, it must only be called once (it is OK to call it several times as long as it is from the same location, e.g. to do a reinitialization).
+*/
 static void timers_init(void)
 {
     uint32_t err_code;
-
-    // Initialize timer module.
+    
+    // Initialize timer module, making it use the scheduler
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
-
+    
     // Create timers.
+    // APP_TIMER_MODE_REPEATED means the timer will resart every time it expires
+    // ess_meas_timeout_handler called when the timer expires
     err_code = app_timer_create(&m_ess_timer_id,
                                 APP_TIMER_MODE_REPEATED,
                                 ess_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-    // Initialize timer module, making it use the scheduler
     
-   // APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
-    
-    //uint32_t err_code;
-    
-    // Create timers.
-    /*
+    /* //Create timers.
     err_code = app_timer_create(&m_temp_timer_id,
     APP_TIMER_MODE_REPEATED,
     temp_meas_timeout_handler);
@@ -405,7 +393,6 @@ static void timers_init(void)
  * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
  *          device including the device name, appearance, and the preferred connection parameters.
  */
-
 static void gap_params_init(void)
 
 {
@@ -472,37 +459,32 @@ static void advertising_init(void)
 /**@brief Function for simulating and sending one Blood Pressure Measurement.
  */
 /*
-static void ess_measurement_send(void)
-{
-    ble_ess_meas_t simulated_meas;
-    uint32_t       err_code;
-    //bool           is_indication_enabled;
-
-    //err_code = ble_bps_is_indication_enabled(&m_bps, &is_indication_enabled);
-    //APP_ERROR_CHECK(err_code);
-
-    //if (is_indication_enabled && !m_bps_meas_ind_conf_pending)
-    //{
-        ess_sim_measurement(&simulated_meas);
-
-        err_code = ble_ess_measurement_send(&m_bps, &simulated_meas);
-        switch (err_code)
-        {
-            case NRF_SUCCESS:
-                // Measurement was successfully sent, wait for confirmation.
-                m_bps_meas_ind_conf_pending = true;
-                break;
-
-            case NRF_ERROR_INVALID_STATE:
-                // Ignore error.
-                break;
-
-            default:
-                APP_ERROR_HANDLER(err_code);
-                break;
-       // }
-    //}
-} */
+ static void ess_measurement_send(void)
+ {
+ ble_ess_meas_t simulated_meas;
+ uint32_t       err_code;
+ //bool           is_indication_enabled;
+ //err_code = ble_bps_is_indication_enabled(&m_bps, &is_indication_enabled);
+ //APP_ERROR_CHECK(err_code);
+ //if (is_indication_enabled && !m_bps_meas_ind_conf_pending)
+ //{
+ ess_sim_measurement(&simulated_meas);
+ err_code = ble_ess_measurement_send(&m_bps, &simulated_meas);
+ switch (err_code)
+ {
+ case NRF_SUCCESS:
+ // Measurement was successfully sent, wait for confirmation.
+ m_bps_meas_ind_conf_pending = true;
+ break;
+ case NRF_ERROR_INVALID_STATE:
+ // Ignore error.
+ break;
+ default:
+ APP_ERROR_HANDLER(err_code);
+ break;
+ // }
+ //}
+ } */
 
 
 /**@brief Function for handling the ESS events.
@@ -540,11 +522,13 @@ static void temp_char_init(ble_ess_init_t * p_ess_init)
     p_ess_init->init_temp_data = init_data;
     
     //p_ess_init->is_temp_notify_supported = true;
+
+    uint32_t meas_time = 60;
     
     //Initialize trigger settings if notifications are supported
-    p_ess_init->temp_trigger_condition = TRIG_FIXED_INTERVAL;
-    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(1);
-
+    p_ess_init->temp_trigger_condition = TRIG_INACTIVE;
+    p_ess_init->temp_trigger_var_buffer = (uint8_t*)&(meas_time);
+    
 }
 
 /**@brief Function for initializing the pressure.
@@ -553,12 +537,14 @@ static void pres_char_init(ble_ess_init_t * p_ess_init)
 {
     uint32_t init_data = 456;
     p_ess_init->init_pres_data = init_data;
-    
+
+        uint32_t meas_time = 120;
+
     //p_ess_init->is_pres_notify_supported = true;
     
     //Initialize trigger settings if notifications are supported
     p_ess_init->temp_trigger_condition = TRIG_FIXED_INTERVAL;
-    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(1);
+    p_ess_init->temp_trigger_var_buffer = (uint8_t*)&(meas_time);
     
 }
 
@@ -569,11 +555,14 @@ static void hum_char_init(ble_ess_init_t * p_ess_init)
     uint16_t init_data = 789;
     p_ess_init->init_hum_data = init_data;
     
+
+        uint32_t meas_time = 240;
+
     //p_ess_init->is_hum_notify_supported = true;
     
     //Initialize trigger settings if notifications are supported
     p_ess_init->hum_trigger_condition = TRIG_FIXED_INTERVAL;
-    p_ess_init->hum_trigger_var_buffer = (uint8_t*)(1);
+    p_ess_init->hum_trigger_var_buffer = (uint8_t*)&(meas_time);
     
 }
 
@@ -584,15 +573,15 @@ static void services_init(void)
 {
     uint32_t err_code;
     ble_ess_init_t ess_init;
-        
+    
     //Initialize the Environmental Sensing Service
     memset(&ess_init, 0 , sizeof(ess_init));
     
     ess_init.evt_handler = on_ess_evt;
     ess_init.is_notify_supported = true;
-
+    
     //ess_init.evt_handler = NULL;
-
+    
     temp_char_init(&ess_init); //initialize temp
     pres_char_init(&ess_init); //initialize pres
     hum_char_init(&ess_init); //initialize hum
@@ -619,45 +608,42 @@ static void sensor_sim_init(void)
     m_temp_sim_cfg.max          = MAX_TEMP_LEVEL;
     m_temp_sim_cfg.incr         = TEMP_LEVEL_INCREMENT;
     m_temp_sim_cfg.start_at_max = false; // false means start at minimum
-
+    
     ble_sensorsim_init(&m_temp_sim_state, &m_temp_sim_cfg);
-
+    
     m_pres_sim_cfg.min          = MIN_PRES_LEVEL;
     m_pres_sim_cfg.max          = MAX_PRES_LEVEL;
     m_pres_sim_cfg.incr         = PRES_LEVEL_INCREMENT;
     m_pres_sim_cfg.start_at_max = false; // false means start at minimum
-
+    
     ble_sensorsim_init(&m_pres_sim_state, &m_pres_sim_cfg);
-
+    
     m_hum_sim_cfg.min          = MIN_HUM_LEVEL;
     m_hum_sim_cfg.max          = MAX_HUM_LEVEL;
     m_hum_sim_cfg.incr         = HUM_LEVEL_INCREMENT;
     m_hum_sim_cfg.start_at_max = false; // false means start at minimum
-
+    
     ble_sensorsim_init(&m_hum_sim_state, &m_hum_sim_cfg);
-
+    
     /*
     // Simulated measurement #1.
     m_ess_sim_val[0].temp      = SIM_MEAS_1_TEMP;
     m_ess_sim_val[0].pres      = SIM_MEAS_1_PRES;
     m_ess_sim_val[0].hum      = SIM_MEAS_1_HUM;
-
     // Simulated measurement #2.
     m_ess_sim_val[0].temp      = SIM_MEAS_2_TEMP;
     m_ess_sim_val[0].pres      = SIM_MEAS_2_PRES;
     m_ess_sim_val[0].hum      = SIM_MEAS_2_HUM;
-
     // Simulated measurement #3.
     m_ess_sim_val[0].temp      = SIM_MEAS_3_TEMP;
     m_ess_sim_val[0].pres      = SIM_MEAS_3_PRES;
     m_ess_sim_val[0].hum      = SIM_MEAS_3_HUM;
-
     // Simulated measurement #4.
     m_ess_sim_val[0].temp      = SIM_MEAS_4_TEMP;
     m_ess_sim_val[0].pres      = SIM_MEAS_4_PRES;
     m_ess_sim_val[0].hum      = SIM_MEAS_4_HUM;
     */
-
+    
 }
 
 
@@ -744,7 +730,7 @@ static void timers_start(void)
 
 {
     uint32_t err_code;
-
+    
     // Start application timers.
     err_code = app_timer_start(m_ess_timer_id, ESS_MEAS_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
@@ -851,7 +837,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-
+            
         case BLE_GATTS_EVT_TIMEOUT:
             if (p_ble_evt->evt.gatts_evt.params.timeout.src == BLE_GATT_TIMEOUT_SRC_PROTOCOL)
             {
@@ -878,22 +864,37 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
  */
-
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
-
 {
-    
-    on_ble_evt(p_ble_evt);
-    
-    ble_conn_params_on_ble_evt(p_ble_evt);
-    
     ble_ess_on_ble_evt(&m_ess, p_ble_evt);
-    
+    ble_conn_params_on_ble_evt(p_ble_evt);
+    dm_ble_evt_handler(p_ble_evt); // what does this do?
+    on_ble_evt(p_ble_evt);
 }
 
-
-
-
+/**@brief Function for handling the Application's system events.
+ *
+ * @param[in]   sys_evt   system event.
+ */
+static void on_sys_evt(uint32_t sys_evt)
+{
+    switch(sys_evt)
+    {
+        case NRF_EVT_FLASH_OPERATION_SUCCESS:
+        case NRF_EVT_FLASH_OPERATION_ERROR:
+            
+            if (m_memory_access_in_progress)
+            {
+                m_memory_access_in_progress = false;
+                advertising_start();
+            }
+            break;
+            
+        default:
+            // No implementation needed.
+            break;
+    }
+}
 
 /**@brief Function for dispatching a system event to interested modules.
  *
@@ -902,16 +903,11 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
  *
  * @param[in]   sys_evt   System stack event.
  */
-
 static void sys_evt_dispatch(uint32_t sys_evt)
-
 {
-    
     pstorage_sys_event_handler(sys_evt);
-    
+    on_sys_evt(sys_evt);
 }
-
-
 
 
 
@@ -919,58 +915,34 @@ static void sys_evt_dispatch(uint32_t sys_evt)
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
  */
-
 static void ble_stack_init(void)
-
 {
-    
     uint32_t err_code;
     
-    
     // Initialize the SoftDevice handler module.
-    
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
     
-    
     // Enable BLE stack
-    
     ble_enable_params_t ble_enable_params;
-    
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-    
     ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
-    
     err_code = sd_ble_enable(&ble_enable_params);
-    
     APP_ERROR_CHECK(err_code);
     
-    
+    //what is this??
     ble_gap_addr_t addr;
-    
-    
-    
     err_code = sd_ble_gap_address_get(&addr);
-    
     APP_ERROR_CHECK(err_code);
-    
     sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE, &addr);
-    
     APP_ERROR_CHECK(err_code);
     
     // Subscribe for BLE events.
-    
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
-    
     APP_ERROR_CHECK(err_code);
-    
-    
     
     // Register with the SoftDevice handler module for BLE events.
-    
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-    
     APP_ERROR_CHECK(err_code);
-    
 }
 
 
@@ -979,62 +951,28 @@ static void ble_stack_init(void)
 
 /**@brief Function for the Event Scheduler initialization.
  */
-
 static void scheduler_init(void)
-
 {
-    
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    
 }
 
-
-
-
-/*
- static void temp_char_handler(uint8_t pin_no, uint8_t temp_action)
- {
- uint32_t temp_val_default = 80;
- 
- ble_ess_on_temp_change(temp_val_default);
- }
- static void pres_char_handler(void)
- {
- uint32_t pres_val_default = 3;
- 
- ble_ess_on_pres_change(pres_val_default);
- }
- */
 
 
 /**@brief Function for initializing the GPIOTE handler module.
  */
-
 static void gpiote_init(void)
-
 {
-    
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
-    
 }
-
-
 
 
 /**@brief Function for the Power manager.
  */
-
 static void power_manage(void)
-
 {
-    
     uint32_t err_code = sd_app_evt_wait();
-    
     APP_ERROR_CHECK(err_code);
-    
 }
-
-
 
 
 
@@ -1042,11 +980,9 @@ static void power_manage(void)
  */
 
 int main(void)
-
 {
-    
     // Initialize
-    
+
     //leds_init();
     
     timers_init();
@@ -1064,6 +1000,8 @@ int main(void)
     services_init();
     
     advertising_init();
+
+    sensor_sim_init();
     
     conn_params_init();
     
