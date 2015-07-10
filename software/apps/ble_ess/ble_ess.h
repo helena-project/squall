@@ -115,6 +115,17 @@ typedef struct
 	
 } ble_ess_init_t;
 
+
+/**@brief ESS Trigger Setting Descriptor */
+//This is mandatory if notifications are supported. Otherwise, it is excluded.
+typedef struct ess_trig_set_desc_s
+{
+	uint8_t	condition;
+	uint8_t * var_buff;
+	
+} ess_trig_des_t;
+
+
 /**@brief ESS structure. This contains various status information for the service. */
 typedef struct ble_ess_s
 {
@@ -128,6 +139,13 @@ typedef struct ble_ess_s
 	uint8_t *	temp_val_last;
 	uint8_t * pres_val_last;
 	uint8_t * hum_val_last;
+
+	ess_trig_des_t * temp_trigger_val;
+	ess_trig_des_t * pres_trigger_val;
+	ess_trig_des_t * hum_trigger_val;
+
+	uint8_t	temp_trigger_condition;
+	uint8_t * temp_trigger_var_buffer;
 	
 	uint16_t 		temp_trigger_handle;
 	uint16_t 		pres_trigger_handle;
@@ -139,16 +157,6 @@ typedef struct ble_ess_s
 } ble_ess_t;
 
 
-/**@brief ESS Trigger Setting Descriptor */
-//This is mandatory if notifications are supported. Otherwise, it is excluded.
-typedef struct ess_trig_set_desc_s
-{
-	ble_uuid_t * desc_uuid;
-	uint8_t	condition;
-	uint16_t var_len;
-	uint8_t * var_buff;
-	
-} ess_trig_set_desc_t;
 
 
 /**@brief ESS Measurement Descriptor */
@@ -224,11 +232,10 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
 					  uint16_t char_len);
 
 
-uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len);
+uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len, ess_trig_des_t * char_trigger_val);
 
+bool is_notification_needed(ess_trig_des_t * char_trigger_val, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old);
 
 #endif // BLE_ESS_H__
-
-
 
 /** @} */

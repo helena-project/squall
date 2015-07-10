@@ -274,10 +274,10 @@ static void ess_update(void)
     sim_temp_meas = (int16_t)(ble_sensorsim_measure(&m_temp_sim_state, &m_temp_sim_cfg));
     temp_meas_val = (uint8_t*)(&sim_temp_meas);
     
-    printf("%d", *temp_meas_val);
+    //printf("%d", *temp_meas_val);
 
 
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.temp_char_handles), (m_ess.temp_val_last), temp_meas_val, MAX_TEMP_LEN);
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.temp_char_handles), (m_ess.temp_val_last), temp_meas_val, MAX_TEMP_LEN, &(m_ess.temp_trigger_val) );
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -293,7 +293,7 @@ static void ess_update(void)
     sim_pres_meas = (uint32_t)(ble_sensorsim_measure(&m_pres_sim_state, &m_pres_sim_cfg));
     pres_meas_val = (uint8_t*)(&sim_pres_meas);
     
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_PRES_LEN);
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_PRES_LEN, &(m_ess.pres_trigger_val) );
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -310,7 +310,7 @@ static void ess_update(void)
     sim_hum_meas = (uint16_t)(ble_sensorsim_measure(&m_hum_sim_state, &m_hum_sim_cfg));
     hum_meas_val = (uint8_t*)(&sim_hum_meas);
     
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_HUM_LEN);
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_HUM_LEN, &(m_ess.hum_trigger_val) );
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -456,37 +456,6 @@ static void advertising_init(void)
 }
 
 
-/**@brief Function for simulating and sending one Blood Pressure Measurement.
- */
-/*
- static void ess_measurement_send(void)
- {
- ble_ess_meas_t simulated_meas;
- uint32_t       err_code;
- //bool           is_indication_enabled;
- //err_code = ble_bps_is_indication_enabled(&m_bps, &is_indication_enabled);
- //APP_ERROR_CHECK(err_code);
- //if (is_indication_enabled && !m_bps_meas_ind_conf_pending)
- //{
- ess_sim_measurement(&simulated_meas);
- err_code = ble_ess_measurement_send(&m_bps, &simulated_meas);
- switch (err_code)
- {
- case NRF_SUCCESS:
- // Measurement was successfully sent, wait for confirmation.
- m_bps_meas_ind_conf_pending = true;
- break;
- case NRF_ERROR_INVALID_STATE:
- // Ignore error.
- break;
- default:
- APP_ERROR_HANDLER(err_code);
- break;
- // }
- //}
- } */
-
-
 /**@brief Function for handling the ESS events.
  *
  * @details This function will be called for all ESS events which are passed to
@@ -523,11 +492,11 @@ static void temp_char_init(ble_ess_init_t * p_ess_init)
     
     //p_ess_init->is_temp_notify_supported = true;
 
-    uint32_t meas_time = 60;
+    uint32_t meas = 200;
     
     //Initialize trigger settings if notifications are supported
-    p_ess_init->temp_trigger_condition = TRIG_INACTIVE;
-    p_ess_init->temp_trigger_var_buffer = (uint8_t*)&(meas_time);
+    p_ess_init->temp_trigger_condition = TRIG_WHILE_GT;
+    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(&meas);
     
 }
 
@@ -538,13 +507,13 @@ static void pres_char_init(ble_ess_init_t * p_ess_init)
     uint32_t init_data = 456;
     p_ess_init->init_pres_data = init_data;
 
-        uint32_t meas_time = 120;
+        uint32_t meas = 600;
 
     //p_ess_init->is_pres_notify_supported = true;
     
     //Initialize trigger settings if notifications are supported
-    p_ess_init->temp_trigger_condition = TRIG_FIXED_INTERVAL;
-    p_ess_init->temp_trigger_var_buffer = (uint8_t*)&(meas_time);
+    p_ess_init->pres_trigger_condition = TRIG_INACTIVE;
+    p_ess_init->pres_trigger_var_buffer = (uint8_t*)(&meas);
     
 }
 
@@ -556,13 +525,13 @@ static void hum_char_init(ble_ess_init_t * p_ess_init)
     p_ess_init->init_hum_data = init_data;
     
 
-        uint32_t meas_time = 240;
+        uint32_t meas = 240;
 
     //p_ess_init->is_hum_notify_supported = true;
     
     //Initialize trigger settings if notifications are supported
-    p_ess_init->hum_trigger_condition = TRIG_FIXED_INTERVAL;
-    p_ess_init->hum_trigger_var_buffer = (uint8_t*)&(meas_time);
+    p_ess_init->hum_trigger_condition = TRIG_WHILE_GT;
+    p_ess_init->hum_trigger_var_buffer = (uint8_t*)(&meas);
     
 }
 
