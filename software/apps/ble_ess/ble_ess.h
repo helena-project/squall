@@ -15,6 +15,7 @@
 #include "stdio.h"
 
 
+
 #define ESS_UUID_BASE {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
 #define ESS_UUID_SERVICE 0x181A
@@ -65,6 +66,9 @@
 
 #define MAX_TRIG_LEN 32
 
+int intcmp( uint8_t * buff_1, uint8_t * buff_2, uint16_t length, bool is_signed);
+
+void ess_copybuff( uint8_t * buff_1, uint8_t * buff_2, uint32_t length);
 /**@brief ESS event type. */
 typedef enum
 {
@@ -101,13 +105,18 @@ typedef struct
 	uint16_t 	init_hum_data;
 	
 	uint8_t		temp_trigger_condition;
-	uint8_t*	temp_trigger_var_buffer;
+	int16_t		temp_trigger_val;
+	//uint8_t		temp_trigger_val_len;
+
 	
 	uint8_t		pres_trigger_condition;
-	uint8_t*	pres_trigger_var_buffer;
+	uint32_t	pres_trigger_val;
+	//uint8_t 	pres_trigger_val_len;
 	
 	uint8_t		hum_trigger_condition;
-	uint8_t*	hum_trigger_var_buffer;
+	uint16_t	hum_trigger_val;
+	//uint8_t 	hum_trigger_val_len;
+
     bool						is_notify_supported;		/**< Determines if notifications are supported */
 	//bool						is_temp_notify_supported;		/**< Determines if notifications are supported */
     //bool						is_pres_notify_supported;		/**< Determines if notifications are supported */
@@ -136,16 +145,23 @@ typedef struct ble_ess_s
 	ble_gatts_char_handles_t      pres_char_handles;          /**< Handles related to the Pressure characteristic. */
 	ble_gatts_char_handles_t      hum_char_handles;           /**< Handles related to the Humidity characteristic. */
 	
-	uint8_t *	temp_val_last;
+	uint8_t * temp_val_last;
 	uint8_t * pres_val_last;
 	uint8_t * hum_val_last;
 
-	ess_trig_des_t * temp_trigger_val;
-	ess_trig_des_t * pres_trigger_val;
-	ess_trig_des_t * hum_trigger_val;
+	//ess_trig_des_t * temp_trigger_val;
 
-	uint8_t	temp_trigger_condition;
-	uint8_t * temp_trigger_var_buffer;
+	uint8_t temp_trigger_val_cond;
+	uint8_t temp_trigger_val_buff[4];
+
+	uint8_t pres_trigger_val_cond;
+	uint8_t pres_trigger_val_buff[4];
+
+	uint8_t hum_trigger_val_cond;
+	uint8_t hum_trigger_val_buff[4];
+
+	//ess_trig_des_t * pres_trigger_val;
+	//ess_trig_des_t * hum_trigger_val;
 	
 	uint16_t 		temp_trigger_handle;
 	uint16_t 		pres_trigger_handle;
@@ -155,34 +171,6 @@ typedef struct ble_ess_s
     uint16_t                      conn_handle;                /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
     
 } ble_ess_t;
-
-
-
-
-/**@brief ESS Measurement Descriptor */
-// This is only mandatory is multiple instances of an ESS Characteristic with the same UUID are supported; Otherwise, it is optional.
-/*
- typedef struct ess_meas_des_s
- {
- ble_uuid_t* desc_uuid;
- int flags : 16; // insert bitfield for field
- uint8_t samp_func; // sampling function
- unsigned int meas_per : 24; //measurement period
- unsigned int up_intv : 24; //update interval
- uint8_t app; // application
- uint8_t	meas_unc; //measurement uncertainty
- } ess_meas_desc_t;
- */
-
-/**@brief ESS Configuration Descriptor */
-// Mandatory if multiple ES Trigger Setting descriptors are supported; excluded otherwise.
-// This this is a C2/C3 requirement, and notifications are not implemented in this version, this descriptor will also not be implemented.
-/*
- typedef struct
- {
- //octet?!
- } ess_config_des;
- */
 
 
 /**@brief Function for initializing the ESS.
@@ -232,9 +220,10 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
 					  uint16_t char_len);
 
 
-uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len, ess_trig_des_t * char_trigger_val);
+uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, 
+	uint8_t * ess_meas_val, uint16_t char_len, uint8_t condition, uint8_t * var_buff, bool is_signed);
 
-bool is_notification_needed(ess_trig_des_t * char_trigger_val, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old);
+bool is_notification_needed(uint8_t condition, uint8_t * operand, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old, uint8_t char_len, bool is_signed);
 
 #endif // BLE_ESS_H__
 

@@ -261,23 +261,31 @@ static void ess_update(void)
 {
     uint32_t err_code;
     //ess_meas_t meas_values;
-    uint8_t * temp_meas_val;
-    uint8_t  * pres_meas_val;
-    uint8_t  * hum_meas_val;
+    //uint8_t * temp_meas_val;
+    //uint8_t  * pres_meas_val;
+    //uint8_t  * hum_meas_val;
     
     int16_t sim_temp_meas;
     uint32_t sim_pres_meas;
     uint16_t sim_hum_meas;
+
+    uint8_t  temp_meas_val[4];
+    //uint8_t  pres_meas_val[4];
+    //uint8_t  hum_meas_val[4];
     
+    uint32_t meas;
+
 
     //ess_sensorsim_measure(&m_ess, &meas_values);
-    sim_temp_meas = (int16_t)(ble_sensorsim_measure(&m_temp_sim_state, &m_temp_sim_cfg));
-    temp_meas_val = (uint8_t*)(&sim_temp_meas);
+    meas = (uint16_t)(ble_sensorsim_measure(&m_temp_sim_state, &m_temp_sim_cfg));
+    //uint8_t * temp_meas_val = (uint8_t*)(&sim_temp_meas);
     
+    memcpy(temp_meas_val, meas, 2);
+
     //printf("%d", *temp_meas_val);
 
 
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.temp_char_handles), (m_ess.temp_val_last), temp_meas_val, MAX_TEMP_LEN, &(m_ess.temp_trigger_val) );
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.temp_char_handles), (m_ess.temp_val_last), temp_meas_val, MAX_TEMP_LEN, (m_ess.temp_trigger_val_cond), m_ess.temp_trigger_val_buff, true );
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -291,9 +299,9 @@ static void ess_update(void)
     
     //ess_sensorsim_measure(&m_ess, &meas_values);
     sim_pres_meas = (uint32_t)(ble_sensorsim_measure(&m_pres_sim_state, &m_pres_sim_cfg));
-    pres_meas_val = (uint8_t*)(&sim_pres_meas);
+    uint8_t * pres_meas_val = (uint8_t*)(&sim_pres_meas);
     
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_PRES_LEN, &(m_ess.pres_trigger_val) );
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.pres_char_handles), (m_ess.pres_val_last), pres_meas_val, MAX_PRES_LEN, (m_ess.pres_trigger_val_cond), m_ess.pres_trigger_val_buff, false);
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -308,9 +316,9 @@ static void ess_update(void)
     
     //ess_sensorsim_measure(&m_ess, &meas_values);
     sim_hum_meas = (uint16_t)(ble_sensorsim_measure(&m_hum_sim_state, &m_hum_sim_cfg));
-    hum_meas_val = (uint8_t*)(&sim_hum_meas);
+    uint8_t * hum_meas_val = (uint8_t*)(&sim_hum_meas);
     
-    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_HUM_LEN, &(m_ess.hum_trigger_val) );
+    err_code = ble_ess_char_value_update(&m_ess, &(m_ess.hum_char_handles), (m_ess.hum_val_last), hum_meas_val, MAX_HUM_LEN, (m_ess.hum_trigger_val_cond), m_ess.hum_trigger_val_buff, false);
     
     //err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -490,14 +498,12 @@ static void temp_char_init(ble_ess_init_t * p_ess_init)
     int16_t init_data = 123;
     p_ess_init->init_temp_data = init_data;
     
-    //p_ess_init->is_temp_notify_supported = true;
+    int16_t meas = 29472;
 
-    uint32_t meas = 200;
-    
-    //Initialize trigger settings if notifications are supported
-    p_ess_init->temp_trigger_condition = TRIG_WHILE_GT;
-    p_ess_init->temp_trigger_var_buffer = (uint8_t*)(&meas);
-    
+    p_ess_init->temp_trigger_condition = TRIG_WHILE_E;
+
+    p_ess_init->temp_trigger_val = (meas);
+
 }
 
 /**@brief Function for initializing the pressure.
@@ -507,14 +513,12 @@ static void pres_char_init(ble_ess_init_t * p_ess_init)
     uint32_t init_data = 456;
     p_ess_init->init_pres_data = init_data;
 
-        uint32_t meas = 600;
+    uint32_t meas = 30556;
 
-    //p_ess_init->is_pres_notify_supported = true;
-    
-    //Initialize trigger settings if notifications are supported
     p_ess_init->pres_trigger_condition = TRIG_INACTIVE;
-    p_ess_init->pres_trigger_var_buffer = (uint8_t*)(&meas);
-    
+
+    p_ess_init->pres_trigger_val = (meas);
+
 }
 
 /**@brief Function for initializing the humidity.
@@ -524,15 +528,12 @@ static void hum_char_init(ble_ess_init_t * p_ess_init)
     uint16_t init_data = 789;
     p_ess_init->init_hum_data = init_data;
     
+    uint16_t meas = 240;
 
-        uint32_t meas = 240;
+    p_ess_init->hum_trigger_condition = TRIG_INACTIVE;
 
-    //p_ess_init->is_hum_notify_supported = true;
-    
-    //Initialize trigger settings if notifications are supported
-    p_ess_init->hum_trigger_condition = TRIG_WHILE_GT;
-    p_ess_init->hum_trigger_var_buffer = (uint8_t*)(&meas);
-    
+    p_ess_init->hum_trigger_val = (meas);
+
 }
 
 
@@ -549,21 +550,10 @@ static void services_init(void)
     ess_init.evt_handler = on_ess_evt;
     ess_init.is_notify_supported = true;
     
-    //ess_init.evt_handler = NULL;
     
     temp_char_init(&ess_init); //initialize temp
     pres_char_init(&ess_init); //initialize pres
     hum_char_init(&ess_init); //initialize hum
-    
-    // Here the sec level for the ESS can be changed/increased.
-    /*
-    BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&bps_init.bps_meas_attr_md.cccd_write_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_meas_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_meas_attr_md.write_perm);
-     
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bps_init.bps_feature_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bps_init.bps_feature_attr_md.write_perm);
-    */
     
     err_code = ble_ess_init(&m_ess, &ess_init);
     APP_ERROR_CHECK(err_code);
@@ -593,25 +583,6 @@ static void sensor_sim_init(void)
     m_hum_sim_cfg.start_at_max = false; // false means start at minimum
     
     ble_sensorsim_init(&m_hum_sim_state, &m_hum_sim_cfg);
-    
-    /*
-    // Simulated measurement #1.
-    m_ess_sim_val[0].temp      = SIM_MEAS_1_TEMP;
-    m_ess_sim_val[0].pres      = SIM_MEAS_1_PRES;
-    m_ess_sim_val[0].hum      = SIM_MEAS_1_HUM;
-    // Simulated measurement #2.
-    m_ess_sim_val[0].temp      = SIM_MEAS_2_TEMP;
-    m_ess_sim_val[0].pres      = SIM_MEAS_2_PRES;
-    m_ess_sim_val[0].hum      = SIM_MEAS_2_HUM;
-    // Simulated measurement #3.
-    m_ess_sim_val[0].temp      = SIM_MEAS_3_TEMP;
-    m_ess_sim_val[0].pres      = SIM_MEAS_3_PRES;
-    m_ess_sim_val[0].hum      = SIM_MEAS_3_HUM;
-    // Simulated measurement #4.
-    m_ess_sim_val[0].temp      = SIM_MEAS_4_TEMP;
-    m_ess_sim_val[0].pres      = SIM_MEAS_4_PRES;
-    m_ess_sim_val[0].hum      = SIM_MEAS_4_HUM;
-    */
     
 }
 

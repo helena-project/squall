@@ -14,7 +14,18 @@
 
 #define INVALID_HUM_LEVEL 0xFFFF
 
+void ess_copybuff( uint8_t * buff_1, uint8_t * buff_2, uint32_t length){
 
+    //*buff_2 = *buff_1;
+
+    buff_2[0] = buff_1[0];
+
+    uint32_t len = 0;
+
+    while (len < length) {
+        buff_2[len++] = buff_1[len];
+    }
+}
 
 /**@brief Function for handling the Connect event.
  *
@@ -128,10 +139,11 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
                             uint8_t * fake_data_p,
                             uint16_t init_char_len,
                             uint16_t max_char_len,
-                            uint8_t trigger_condition,
-                            uint8_t * trigger_var_buff,
+                            uint8_t * trigger_condition,
+                            uint8_t * trigger_val,
                             uint16_t * trigger_handle,
-                            ess_trig_des_t * trig_des)
+                            uint8_t * condition,
+                            uint8_t * var_buff)
 {
     
     uint32_t err_code;
@@ -212,9 +224,13 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     
     /***** If notification is enabled, add the trigger setting ***/
     //Note: Trigger setting should have been initialized in p_ess_init
-    
+   //printf("yo");
     if (p_ess_init->is_notify_supported == true){
         
+        *condition = *trigger_condition;
+        memcpy(var_buff, trigger_val, max_char_len);
+
+
         memset(&trigger_des, 0, sizeof(trigger_des));
         
         //uint16_t init_len = encode_buffer(trigger_des.p_value, &trigger_condition, trigger_var_buff);
@@ -228,17 +244,15 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
         trigger_des.init_offs = 0;
         trigger_des.max_len = MAX_TRIG_LEN;
         //printf("hi");
-        trigger_des.p_value = (uint8_t)(trigger_condition | (*trigger_var_buff >> 16) );
-        
-        //uint16_t id = ESS_UUID_ES_TRIGGER_SETTING;
-        //uint16_t *ble_uuid_ac = (uint16_t*)&id;
-        
-        err_code = sd_ble_gatts_descriptor_add(BLE_GATT_HANDLE_INVALID, &trigger_des, trigger_handle);
-        
-        trig_des->condition = trigger_condition;
-        trig_des->var_buff = trigger_var_buff;
+        trigger_des.p_value = var_buff;
 
-        printf("hi");
+        //var_buff = trigger_var_buff;
+        //ess_copybuff(trigger_var_buff, var_buff, var_len);
+
+        err_code = sd_ble_gatts_descriptor_add(BLE_GATT_HANDLE_INVALID, &trigger_des, trigger_handle);
+    
+
+       printf("hi");
     }
     
     if (err_code != NRF_SUCCESS){ return err_code; }
@@ -323,7 +337,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_temp_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_TEMP_CHAR, &p_ess->temp_char_handles, init_data_ptr, INIT_TEMP_LEN, MAX_TEMP_LEN, 
-        p_ess_init->temp_trigger_condition, p_ess_init->temp_trigger_var_buffer, &p_ess->temp_trigger_handle, p_ess->temp_trigger_val);
+        &(p_ess_init->temp_trigger_condition),  (uint8_t*)&(p_ess_init->temp_trigger_val), &p_ess->temp_trigger_handle, &(p_ess->temp_trigger_val_cond), p_ess->temp_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -335,7 +349,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_PRES_CHAR, &p_ess->pres_char_handles, init_data_ptr, INIT_PRES_LEN, MAX_PRES_LEN, 
-        p_ess_init->pres_trigger_condition, p_ess_init->pres_trigger_var_buffer, &p_ess->pres_trigger_handle, p_ess->pres_trigger_val);
+        &(p_ess_init->pres_trigger_condition),  (uint8_t*)&(p_ess_init->pres_trigger_val), &p_ess->pres_trigger_handle, &(p_ess->pres_trigger_val_cond), p_ess->pres_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -345,7 +359,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_HUM_CHAR, &p_ess->hum_char_handles, init_data_ptr, INIT_HUM_LEN, MAX_HUM_LEN, 
-        p_ess_init->hum_trigger_condition, p_ess_init->hum_trigger_var_buffer, &p_ess->hum_trigger_handle, p_ess->hum_trigger_val);
+       &(p_ess_init->hum_trigger_condition),  (uint8_t*)&(p_ess_init->hum_trigger_val), &p_ess->hum_trigger_handle, &(p_ess->hum_trigger_val_cond), p_ess->hum_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -457,11 +471,39 @@ uint32_t ess_char_send(ble_ess_t * p_ess,
     return sd_ble_gatts_hvx(p_ess->conn_handle, &params);
 }
 
+int intcmp( uint8_t * buff_1, uint8_t * buff_2, uint16_t length, bool is_signed){
 
-uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, uint8_t * ess_meas_val, uint16_t char_len, ess_trig_des_t * char_trigger_val)
+    int len = length-1;
+
+    if (is_signed){
+        
+        if ((buff_1[len] >> 7) != (buff_2[len] >> 7) ){
+
+            if ((buff_2[len] >> 7) == 0) return -1;
+            else return 1;
+
+        } 
+
+    }
+
+    while( len >= 0){
+        if (buff_1[len] > buff_2[len]) return 1;
+        else if (buff_1[len] < buff_2[len]) return -1;
+        len--;
+    }
+
+    return 0;
+
+
+}
+
+
+uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *ess_char_handles, uint8_t * ess_meas_val_last, 
+    uint8_t * ess_meas_val, uint16_t char_len, uint8_t condition, uint8_t * var_buff, bool is_signed)
 {
+    
     uint32_t err_code = NRF_SUCCESS;
-
+    
     //if (*ess_meas_val != *ess_meas_val_last)
     //{
         uint16_t len = char_len;
@@ -469,10 +511,12 @@ uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *
         //*ess_meas_val_last = *ess_meas_val;
         
         // Update database
+        
         err_code = sd_ble_gatts_value_set(ess_char_handles->value_handle,
                                           0,
                                           &char_len,
                                           ess_meas_val);
+
         if (err_code != NRF_SUCCESS)
         {
             return err_code;
@@ -481,12 +525,13 @@ uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *
         // Send value if connected and notifying
         if ((p_ess->conn_handle != BLE_CONN_HANDLE_INVALID) && p_ess->is_notify_supported)
         {
-
-           if( is_notification_needed(char_trigger_val, ess_meas_val, ess_meas_val_last) ){
+            
+           if( is_notification_needed(condition, var_buff, ess_meas_val, ess_meas_val_last, char_len, is_signed) ){
                 //send the notification
                 ble_gatts_hvx_params_t hvx_params;
                 
                 memset(&hvx_params, 0, sizeof(hvx_params));
+                
                 len = sizeof(uint8_t);
                 
                 hvx_params.handle = ess_char_handles->value_handle;
@@ -498,176 +543,126 @@ uint32_t ble_ess_char_value_update(ble_ess_t * p_ess, ble_gatts_char_handles_t *
 
                 err_code = sd_ble_gatts_hvx(p_ess->conn_handle, &hvx_params);
             }
+            
         }
+        
         else
         {
             err_code = NRF_ERROR_INVALID_STATE;
         }
+        
+        
     //}
     
-    *ess_meas_val_last = *ess_meas_val;
-
-
+    ess_meas_val_last = ess_meas_val;
+    
+    
     return err_code;
 }
 
-/*
-bool is_notification_needed(ess_trig_des_t * char_trigger_val, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old){
 
-    bool notif_needed = false;
-    uint8_t condition = char_trigger_val->condition;
-    uint8_t * operand = char_trigger_val->var_buff;
-
-    
-    switch (condition){
-
-        case TRIG_INACTIVE:
-            //notif_needed = false;
-            //break;
-
-        case TRIG_FIXED_INTERVAL:
-            //break;
-
-        case TRIG_NO_LESS:
-            //break;
-
-        case TRIG_VALUE_CHANGE:
-            if ( *ess_meas_val_new != *ess_meas_val_old){
-                notif_needed = true;
-            }
-           // break;
-
-        case TRIG_WHILE_LT:
-            if (*ess_meas_val_new < *operand){
-                notif_needed = true;
-            }
-            //break;
-
-        case TRIG_WHILE_LTE:
-            if (*ess_meas_val_new <= *operand){
-                notif_needed = true;
-            }
-            //break;
-
-        case TRIG_WHILE_GT:
-            if (*ess_meas_val_new > *operand){
-                notif_needed = true;
-            }
-            //break;
-
-        case TRIG_WHILE_GTE:
-            if (*ess_meas_val_new >= *operand){
-                notif_needed = true;
-            }
-            //break;
-
-        case TRIG_WHILE_E:
-            if(*ess_meas_val_new == *operand){
-                notif_needed = true;
-            }
-           // break;
-
-        case TRIG_WHILE_NE:
-            if(*ess_meas_val_new != *operand){
-                notif_needed = true;
-            }
-            //break;
-
-        //default:
-            //break;
-    }
-    
-
-    return notif_needed;
-}
-*/
-
-
-bool is_notification_needed(ess_trig_des_t * char_trigger_val, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old){
+bool is_notification_needed(uint8_t condition, uint8_t * operand, uint8_t * ess_meas_val_new, uint8_t * ess_meas_val_old, uint8_t char_len, bool is_signed){
 
     bool notif_needed = true;
-    uint8_t condition = char_trigger_val->condition;
-    uint8_t * operand = char_trigger_val->var_buff;
+        
+        if(condition == TRIG_INACTIVE){
+            notif_needed = false;
+        }
 
-    
-   if(condition == TRIG_INACTIVE){
-        notif_needed = false;
-   }
-            //notif_needed = false;
+        else if (condition == TRIG_FIXED_INTERVAL){
+            notif_needed = false;
             //break;
+        }
 
-        if (condition == TRIG_FIXED_INTERVAL){
+        else if (condition == TRIG_NO_LESS){
             notif_needed = true;
             //break;
         }
 
-        if (condition == TRIG_NO_LESS){
-            notif_needed = true;
-            //break;
-        }
-
-
-        if (condition == TRIG_VALUE_CHANGE){
+        else if (condition == TRIG_VALUE_CHANGE){
             if ( *ess_meas_val_new != *ess_meas_val_old){
                 notif_needed = true;
             }
-            else false;
-        }
-           // break;
-
-        if (condition == TRIG_WHILE_LT){
-            if (*ess_meas_val_new < *(char_trigger_val->var_buff)){
-                notif_needed = true;
+            else {
+                notif_needed = false;
             }
-            else false;
+            // break;
         }
-            //break;
 
-        if (condition == TRIG_WHILE_LTE){
-            if (*ess_meas_val_new <= *(char_trigger_val->var_buff)){
-                notif_needed = true;
+        else {
+            int n = intcmp(ess_meas_val_new, operand, char_len, is_signed);
+
+            if (condition == TRIG_WHILE_LT){
+                
+                if (n < 0){
+                    notif_needed = true;
+                }
+                
+                else {
+                    notif_needed = false;
+                }
             }
-            else false;
-        }
-            //break;
+                //break;
 
-        if (condition == TRIG_WHILE_GT){
-
-            if (*ess_meas_val_new > *(char_trigger_val->var_buff)){
-               notif_needed = true;
+            else if (condition == TRIG_WHILE_LTE){
+                if (n <= 0){
+                    notif_needed = true;
+                }
+                else{
+                    notif_needed = false;
+                } 
             }
-            else false;
-        }
-            //break;
+                //break;
 
-        if (condition == TRIG_WHILE_GTE){
-            if (*ess_meas_val_new >= *(char_trigger_val->var_buff)){
-                notif_needed = true;
-            }
-            else false;
-        }
-            //break;
+            else if (condition == TRIG_WHILE_GT){
 
-        if (condition == TRIG_WHILE_E){
-            if(*ess_meas_val_new == *(char_trigger_val->var_buff)){
-                notif_needed = true;
+                if (n>0){
+                   notif_needed = true;
+                }
+                else{
+                    notif_needed = false;
+                }
             }
-            else false;
-        }
-           // break;
+                //break;
 
-        if (condition == TRIG_WHILE_NE){
-            if(*ess_meas_val_new != *(char_trigger_val->var_buff)){
-                notif_needed = true;
+            else if (condition == TRIG_WHILE_GTE){
+                if (n>=0){
+                    notif_needed = true;
+                }
+                else{
+                    notif_needed = false;
+                }
             }
-            else false;
+                //break;
+
+            else if (condition == TRIG_WHILE_E){
+                if(n==0){
+                    notif_needed = true;
+                }
+                else{
+                    notif_needed = false;
+                }
+            }
+               // break;
+
+            else if (condition == TRIG_WHILE_NE){
+                if(n!=0){
+                    notif_needed = true;
+                }
+                else {
+                    notif_needed = false;
+                }
+            }
+
+
+
         }
             //break;
 
         //default:
             //break;
     //}
-
+    
 
     return notif_needed;
 }
