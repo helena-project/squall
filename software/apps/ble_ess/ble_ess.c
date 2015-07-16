@@ -110,6 +110,7 @@ static uint8_t encode_buffer(uint8_t * p_encoded_buffer, const uint8_t * trigger
     
 }
 
+
 /**@brief Function for adding a pressure characteristic.
  *
  * @param[in]   p_ess        Environmental Service structure.
@@ -195,11 +196,11 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     memset(&attr_md, 0, sizeof(attr_md));
     
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+    attr_md.vlen       = 0;
     attr_md.vloc       = BLE_GATTS_VLOC_STACK;
     attr_md.rd_auth    = 0;
     attr_md.wr_auth    = 0;
-    attr_md.vlen       = 0;
     
     /* 2) The Characteristic Value Attribute consists of the actual data */
     /* for now, we will input fake data */
@@ -228,8 +229,8 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     if (p_ess_init->is_notify_supported == true){
         
         *condition = *trigger_condition;
-        memcpy(var_buff, trigger_val, max_char_len);
-
+        memcpy(var_buff, trigger_condition, 1);
+        memcpy(var_buff+1, trigger_val, max_char_len);
 
         memset(&trigger_des, 0, sizeof(trigger_des));
         
@@ -237,17 +238,23 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
         
         BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
         trigger_des.p_uuid = &ble_uuid;
-        trigger_des.p_attr_md = NULL;
-        trigger_des.init_len = MAX_TRIG_LEN;
-        //trigger_des.init_len = init_len;
+
+        ble_gatts_attr_md_t trigger_des_md;
+        memset(&trigger_des_md, 0, sizeof(trigger_des_md));
+        BLE_GAP_CONN_SEC_MODE_SET_OPEN(&trigger_des_md.read_perm);
+        BLE_GAP_CONN_SEC_MODE_SET_OPEN(&trigger_des_md.write_perm);
+        trigger_des_md.vlen       = 1;
+        trigger_des_md.vloc       = BLE_GATTS_VLOC_STACK;
+        trigger_des_md.rd_auth    = 0;
+        trigger_des_md.wr_auth    = 0;
+
+        trigger_des.p_attr_md = &trigger_des_md;
+        trigger_des.init_len = max_char_len + 1;
+        trigger_des.p_value = var_buff;
         
         trigger_des.init_offs = 0;
         trigger_des.max_len = MAX_TRIG_LEN;
         //printf("hi");
-        trigger_des.p_value = var_buff;
-
-        //var_buff = trigger_var_buff;
-        //ess_copybuff(trigger_var_buff, var_buff, var_len);
 
         err_code = sd_ble_gatts_descriptor_add(BLE_GATT_HANDLE_INVALID, &trigger_des, trigger_handle);
     
@@ -337,7 +344,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_temp_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_TEMP_CHAR, &p_ess->temp_char_handles, init_data_ptr, INIT_TEMP_LEN, MAX_TEMP_LEN, 
-        &(p_ess_init->temp_trigger_condition),  (uint8_t*)&(p_ess_init->temp_trigger_val), &p_ess->temp_trigger_handle, &(p_ess->temp_trigger_val_cond), p_ess->temp_trigger_val_buff);
+        &(p_ess_init->temp_trigger_condition),  (uint8_t*)&(p_ess_init->temp_trigger_val_var), &p_ess->temp_trigger_handle, &(p_ess->temp_trigger_val_cond), p_ess->temp_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -349,7 +356,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_PRES_CHAR, &p_ess->pres_char_handles, init_data_ptr, INIT_PRES_LEN, MAX_PRES_LEN, 
-        &(p_ess_init->pres_trigger_condition),  (uint8_t*)&(p_ess_init->pres_trigger_val), &p_ess->pres_trigger_handle, &(p_ess->pres_trigger_val_cond), p_ess->pres_trigger_val_buff);
+        &(p_ess_init->pres_trigger_condition),  (uint8_t*)&(p_ess_init->pres_trigger_val_var), &p_ess->pres_trigger_handle, &(p_ess->pres_trigger_val_cond), p_ess->pres_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -359,7 +366,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     init_data_ptr = (uint8_t*)&(p_ess_init->init_pres_data);
     
     err_code = ess_char_add(p_ess, p_ess_init, ESS_UUID_HUM_CHAR, &p_ess->hum_char_handles, init_data_ptr, INIT_HUM_LEN, MAX_HUM_LEN, 
-       &(p_ess_init->hum_trigger_condition),  (uint8_t*)&(p_ess_init->hum_trigger_val), &p_ess->hum_trigger_handle, &(p_ess->hum_trigger_val_cond), p_ess->hum_trigger_val_buff);
+       &(p_ess_init->hum_trigger_condition),  (uint8_t*)&(p_ess_init->hum_trigger_val_var), &p_ess->hum_trigger_handle, &(p_ess->hum_trigger_val_cond), p_ess->hum_trigger_val_buff);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;

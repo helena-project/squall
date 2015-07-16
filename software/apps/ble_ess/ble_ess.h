@@ -94,27 +94,32 @@ typedef struct ess_trig_set_desc_s ess_trig_set_desc_t;
 /**@brief ESS event handler type. */
 typedef void (*ble_ess_evt_handler_t) (ble_ess_t * p_ess, ble_ess_evt_t * p_evt);
 
+typedef struct{
+	uint32_t value: 24;
+}  bitfield24_t;
 
 /**@brief ESS init structure. This contains all options and data needed for
  *        initialization of the service.*/
 typedef struct
 {
     ble_ess_evt_handler_t         evt_handler;                    /**< Event handler to be called for handling events in the ESS. */
-	int16_t 	init_temp_data;
-	uint32_t 	init_pres_data;
-	uint16_t 	init_hum_data;
-	
-	uint8_t		temp_trigger_condition;
-	int16_t		temp_trigger_val;
-	//uint8_t		temp_trigger_val_len;
 
-	
+	int16_t 	init_temp_data;	
+	uint8_t		temp_trigger_condition;
+	int16_t		temp_trigger_val_var;
+	bitfield24_t	temp_trigger_val_time;
+	//uint8_t	temp_trigger_val_len;
+
+	uint32_t 	init_pres_data;	
 	uint8_t		pres_trigger_condition;
-	uint32_t	pres_trigger_val;
+	uint32_t	pres_trigger_val_var;
+	bitfield24_t	pres_trigger_val_time;
 	//uint8_t 	pres_trigger_val_len;
-	
+
+	uint16_t 	init_hum_data;	
 	uint8_t		hum_trigger_condition;
-	uint16_t	hum_trigger_val;
+	uint16_t	hum_trigger_val_var;
+	bitfield24_t 	hum_trigger_val_time;
 	//uint8_t 	hum_trigger_val_len;
 
     bool						is_notify_supported;		/**< Determines if notifications are supported */

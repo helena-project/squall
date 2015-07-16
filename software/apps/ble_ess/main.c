@@ -67,6 +67,10 @@
 
 #include "ble_sensorsim.h"
 
+#include "device_manager.h"
+
+ #include "app_trace.h"
+
 
 #include "squall.h"
 
@@ -128,8 +132,6 @@
 
 #define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
-
-
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 #define SCHED_MAX_EVENT_DATA_SIZE       sizeof(app_timer_event_t)                   /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
@@ -146,7 +148,7 @@
 #define MAX_HUM_LEVEL           100000000
 #define MIN_HUM_LEVEL           789
 
-
+#define BOND_DELETE_ALL_BUTTON_ID            1                                          /**< Button used for deleting all bonded centrals during startup. */
 
 
 static ble_gap_sec_params_t             m_sec_params;                               /**< Security requirements for this application. */
@@ -170,7 +172,7 @@ static bool     m_ess_meas_not_conf_pending = false; /** Flag to keep track of w
 
 static bool                                  m_memory_access_in_progress = false;       /**< Flag to keep track of ongoing operations on persistent memory. */
 
-
+static dm_application_instance_t             m_app_handle;                              /**< Application identifier allocated by device manager */
 
 
 // Persistent storage system event handler
@@ -500,9 +502,9 @@ static void temp_char_init(ble_ess_init_t * p_ess_init)
     
     int16_t meas = 29472;
 
-    p_ess_init->temp_trigger_condition = TRIG_WHILE_E;
+    p_ess_init->temp_trigger_condition = TRIG_WHILE_LT;
 
-    p_ess_init->temp_trigger_val = (meas);
+    p_ess_init->temp_trigger_val_var = (meas);
 
 }
 
@@ -517,7 +519,7 @@ static void pres_char_init(ble_ess_init_t * p_ess_init)
 
     p_ess_init->pres_trigger_condition = TRIG_INACTIVE;
 
-    p_ess_init->pres_trigger_val = (meas);
+    p_ess_init->pres_trigger_val_var = (meas);
 
 }
 
@@ -532,7 +534,7 @@ static void hum_char_init(ble_ess_init_t * p_ess_init)
 
     p_ess_init->hum_trigger_condition = TRIG_INACTIVE;
 
-    p_ess_init->hum_trigger_val = (meas);
+    p_ess_init->hum_trigger_val_var = (meas);
 
 }
 
@@ -586,6 +588,69 @@ static void sensor_sim_init(void)
     
 }
 
+/**@brief Function for handling the Device Manager events.
+ *
+ * @param[in]   p_evt   Data associated to the device manager event.
+ */
+static uint32_t device_manager_evt_handler(dm_handle_t const * p_handle,
+                                           dm_event_t const  * p_event,
+                                           api_result_t        event_result)
+{
+    APP_ERROR_CHECK(event_result);
+    
+    switch(p_event->event_id)
+    {
+        case DM_EVT_DEVICE_CONTEXT_LOADED: // Fall through.
+        case DM_EVT_SECURITY_SETUP_COMPLETE:
+            dfu_app_set_dm_handle(p_handle);
+            break;
+        case DM_EVT_DISCONNECTION:
+            dfu_app_set_dm_handle(NULL);
+            break;
+    }
+
+    return NRF_SUCCESS;
+}
+
+
+/**@brief Function for the Device Manager initialization.
+ */
+static void device_manager_init(void)
+{
+    uint32_t               err_code;
+    dm_init_param_t        init_data;
+    dm_application_param_t register_param;
+
+    // Initialize persistent storage module.
+    err_code = pstorage_init();
+    APP_ERROR_CHECK(err_code);
+
+    //memset(&init_data, 0, sizeof(init_data));
+
+    init_data.clear_persistent_data = true;
+
+    // Clear all bonded centrals if the Bonds Delete button is pushed.
+    //err_code = bsp_button_is_pressed(BOND_DELETE_ALL_BUTTON_ID,&(init_data.clear_persistent_data));
+    //APP_ERROR_CHECK(err_code);
+
+    err_code = dm_init(&init_data);
+    APP_ERROR_CHECK(err_code);
+
+    memset(&register_param.sec_param, 0, sizeof(ble_gap_sec_params_t));
+    
+    register_param.sec_param.timeout      = SEC_PARAM_TIMEOUT;
+    register_param.sec_param.bond         = SEC_PARAM_BOND;
+    register_param.sec_param.mitm         = SEC_PARAM_MITM;
+    register_param.sec_param.io_caps      = SEC_PARAM_IO_CAPABILITIES;
+    register_param.sec_param.oob          = SEC_PARAM_OOB;
+    register_param.sec_param.min_key_size = SEC_PARAM_MIN_KEY_SIZE;
+    register_param.sec_param.max_key_size = SEC_PARAM_MAX_KEY_SIZE;
+    register_param.evt_handler            = device_manager_evt_handler;
+    register_param.service_type           = DM_PROTOCOL_CNTXT_GATT_SRVR_ID;
+
+    err_code = dm_register(&m_app_handle, &register_param);
+    APP_ERROR_CHECK(err_code);
+}
 
 /**@brief Function for initializing security parameters.
  */
@@ -683,6 +748,20 @@ static void timers_start(void)
 static void advertising_start(void)
 {
     uint32_t             err_code;
+
+    uint32_t count;
+
+    // Verify if there is any flash access pending, if yes delay starting advertising until
+    // it's complete.
+    err_code = pstorage_access_status_get(&count);
+    APP_ERROR_CHECK(err_code);
+
+    if (count != 0)
+    {
+        m_memory_access_in_progress = true;
+        return;
+    }
+
     ble_gap_adv_params_t adv_params;
     
     // Start advertising
@@ -729,7 +808,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             APP_ERROR_CHECK(err_code);
             advertising_start();
             break;
-            
+        
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
@@ -747,7 +826,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
             
         case BLE_GAP_EVT_SEC_INFO_REQUEST:
-            //p_enc_info = keys_exchanged.keys_central.p_enc_key
+            //p_enc_info = keys_exchanged.keys_central.p_enc_key;
             if (p_master_id.ediv == p_ble_evt->evt.gap_evt.params.sec_info_request.div)
             {
                 //note: second param is confusing...
@@ -771,6 +850,10 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 //nrf_gpio_cfg_sense_input(WAKEUP_BUTTON_PIN,
                 // BUTTON_PULL,
                 //  NRF_GPIO_PIN_SENSE_LOW);
+
+                // enable buttons to wake-up from power off
+                err_code = bsp_buttons_enable( (1 << BOND_DELETE_ALL_BUTTON_ID) );
+                APP_ERROR_CHECK(err_code);
                 
                 // Go to system-off mode (this function will not return; wakeup will cause a reset)
                 err_code = sd_power_system_off();
@@ -806,9 +889,9 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
  */
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
+    dm_ble_evt_handler(p_ble_evt); // what does this do?
     ble_ess_on_ble_evt(&m_ess, p_ble_evt);
     ble_conn_params_on_ble_evt(p_ble_evt);
-    dm_ble_evt_handler(p_ble_evt); // what does this do?
     on_ble_evt(p_ble_evt);
 }
 
@@ -848,7 +931,6 @@ static void sys_evt_dispatch(uint32_t sys_evt)
     pstorage_sys_event_handler(sys_evt);
     on_sys_evt(sys_evt);
 }
-
 
 
 /**@brief Function for initializing the BLE stack.
@@ -934,6 +1016,8 @@ int main(void)
     ble_stack_init();
     
     scheduler_init();
+
+    device_manager_init();
     
     gap_params_init();
     
