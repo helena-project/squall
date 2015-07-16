@@ -174,6 +174,9 @@ static bool                                  m_memory_access_in_progress = false
 
 static dm_application_instance_t             m_app_handle;                              /**< Application identifier allocated by device manager */
 
+static dm_security_status_t                 m_security_status;
+
+static ble_gap_whitelist_t                  m_whitelist;
 
 // Persistent storage system event handler
 void pstorage_sys_event_handler (uint32_t p_evt);
@@ -600,12 +603,16 @@ static uint32_t device_manager_evt_handler(dm_handle_t const * p_handle,
     
     switch(p_event->event_id)
     {
-        case DM_EVT_DEVICE_CONTEXT_LOADED: // Fall through.
-        case DM_EVT_SECURITY_SETUP_COMPLETE:
-            dfu_app_set_dm_handle(p_handle);
+        case DM_EVT_DEVICE_CONTEXT_STORED:
+            dm_security_status_req(p_handle, &m_security_status);
+            break;
+        case DM_EVT_LINK_SECURED:
+            dm_security_status_req(p_handle, &m_security_status);
             break;
         case DM_EVT_DISCONNECTION:
-            dfu_app_set_dm_handle(NULL);
+            dm_device_delete(p_handle);
+            break;
+        default:
             break;
     }
 
@@ -805,22 +812,24 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         case BLE_GAP_EVT_DISCONNECTED:
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+            dm_device_delete_all(m_app_handle);
             APP_ERROR_CHECK(err_code);
             advertising_start();
             break;
-        
+        /*
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
                                                    &m_sec_params);
             APP_ERROR_CHECK(err_code);
             break;
-            
+            */
+        
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
             err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0);
             APP_ERROR_CHECK(err_code);
             break;
-            
+        /*
         case BLE_GAP_EVT_AUTH_STATUS:
             m_auth_status = p_ble_evt->evt.gap_evt.params.auth_status;
             break;
@@ -841,8 +850,10 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-            
+        */
         case BLE_GAP_EVT_TIMEOUT:
+            //dm_device_delete_all(m_app_handle);
+
             if (p_ble_evt->evt.gap_evt.params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISEMENT)
             {
                 //nrf_gpio_pin_clear(ADVERTISING_LED_PIN_NO);
@@ -860,8 +871,10 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-            
+        /*
         case BLE_GATTS_EVT_TIMEOUT:
+            dm_device_delete_all(m_app_handle);
+
             if (p_ble_evt->evt.gatts_evt.params.timeout.src == BLE_GATT_TIMEOUT_SRC_PROTOCOL)
             {
                 err_code = sd_ble_gap_disconnect(m_conn_handle,
@@ -869,7 +882,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-            
+            */
         default:
             // No implementation needed.
             break;
