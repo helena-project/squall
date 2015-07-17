@@ -380,7 +380,7 @@ static void timers_init(void)
                                 ess_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
     
-    /* //Create timers.
+    //Create timers.
     err_code = app_timer_create(&m_temp_timer_id,
     APP_TIMER_MODE_REPEATED,
     temp_meas_timeout_handler);
@@ -393,7 +393,6 @@ static void timers_init(void)
     APP_TIMER_MODE_REPEATED,
     pres_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-    */
     
 }
 
@@ -610,7 +609,7 @@ static uint32_t device_manager_evt_handler(dm_handle_t const * p_handle,
             dm_security_status_req(p_handle, &m_security_status);
             break;
         case DM_EVT_DISCONNECTION:
-            dm_device_delete(p_handle);
+            //dm_device_delete(p_handle);
             break;
         default:
             break;
@@ -812,7 +811,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         case BLE_GAP_EVT_DISCONNECTED:
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-            dm_device_delete_all(m_app_handle);
+            //dm_device_delete_all(m_app_handle);
             APP_ERROR_CHECK(err_code);
             advertising_start();
             break;
@@ -871,9 +870,9 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-        /*
+        
         case BLE_GATTS_EVT_TIMEOUT:
-            dm_device_delete_all(m_app_handle);
+            //dm_device_delete_all(m_app_handle);
 
             if (p_ble_evt->evt.gatts_evt.params.timeout.src == BLE_GATT_TIMEOUT_SRC_PROTOCOL)
             {
@@ -882,7 +881,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 APP_ERROR_CHECK(err_code);
             }
             break;
-            */
+            
         default:
             // No implementation needed.
             break;

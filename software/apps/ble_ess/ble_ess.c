@@ -79,6 +79,31 @@ static void on_hvc(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
     }
 }
 
+/**@brief Function for handling write events to the Heart Rate Measurement characteristic.
+ *
+ * @param[in]   p_hrs         Heart Rate Service structure.
+ * @param[in]   p_evt_write   Write event received from the BLE stack.
+ */
+static void on_temp_trig_write(ble_ess_t * p_ess, ble_gatts_evt_write_t * p_evt_write)
+{
+        memcpy(p_ess->temp_trigger_val_cond, p_evt_write->data, 1);
+        memcpy(p_ess->temp_trigger_val_buff, p_evt_write, 3);
+}
+/**@brief Function for handling the Write event.
+ *
+ * @param[in]   p_ess       ESS structure.
+ * @param[in]   p_ble_evt   Event received from the BLE stack.
+ */
+static void on_write(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
+{
+    ble_gatts_evt_write_t * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+
+    if (p_evt_write->handle == p_ess->temp_trigger_handle)
+    {
+        on_temp_trig_write(p_ess, p_evt_write);
+    }
+}
+
 
 void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
 {
@@ -94,7 +119,11 @@ void ble_ess_on_ble_evt(ble_ess_t * p_ess, ble_evt_t * p_ble_evt)
             
         case BLE_GATTS_EVT_HVC:
             on_hvc(p_ess, p_ble_evt);
-            
+            break;
+        case BLE_GATTS_EVT_WRITE:
+            break;
+            //on_write(p_ess, p_ble_evt);
+            //break;
         default:
             // No implementation needed.
             break;
@@ -171,8 +200,8 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     //char_md.char_props.broadcast   = 0; // excluded
     
     /***** external properties are optional ****/
-    char_md.char_ext_props.reliable_wr = 0; // not mentioned in spec?
-    char_md.char_ext_props.wr_aux = 0; // mentioned as past of normal properties?
+    char_md.char_ext_props.reliable_wr = 1; // not mentioned in spec?
+    char_md.char_ext_props.wr_aux = 1; // mentioned as past of normal properties?
     
     
     /******** if notify is enabled ******/
@@ -182,6 +211,9 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
     //cccd_md.write_perm = p_ess_init->ess_meas_attr_md.cccd_write_perm;
     cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
+    //cccd_md.rd_auth       = 0;
+    //cccd_md.wr_auth      = 0;
+
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
     char_md.p_cccd_md         = &cccd_md;
