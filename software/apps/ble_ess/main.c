@@ -142,16 +142,16 @@
 #define MAX_TEMP_LEVEL              100000000
 #define TEMP_LEVEL_INCREMENT        1
 #define INIT_TEMP_DATA              123
-#define TEMP_TRIGGER_CONDITION      TRIG_WHILE_LT
+#define TEMP_TRIGGER_CONDITION      TRIG_WHILE_NE
 #define TEMP_TRIGGER_VAL_OPERAND    156
 #define TEMP_TRIGGER_VAL_TIME       50000
 
-#define MIN_PRES_LEVEL              1
+#define MIN_PRES_LEVEL              456
 #define MAX_PRES_LEVEL              100000000
 #define PRES_LEVEL_INCREMENT        1
 #define INIT_PRES_DATA              456
-#define PRES_TRIGGER_CONDITION      TRIG_FIXED_INTERVAL
-#define PRES_TRIGGER_VAL_OPERAND    500
+#define PRES_TRIGGER_CONDITION      TRIG_INACTIVE
+#define PRES_TRIGGER_VAL_OPERAND    470
 #define PRES_TRIGGER_VAL_TIME       100000
 
 #define MIN_HUM_LEVEL               789
@@ -159,8 +159,8 @@
 #define HUM_LEVEL_INCREMENT         100
 #define INIT_HUM_DATA               789
 #define HUM_TRIGGER_CONDITION       TRIG_INACTIVE
-#define HUM_TRIGGER_VAL_OPERAND     500
-#define HUM_TRIGGER_VAL_TIME        10000
+#define HUM_TRIGGER_VAL_OPERAND     799
+#define HUM_TRIGGER_VAL_TIME        50000
 
 
 #define BOND_DELETE_ALL_BUTTON_ID            1                                          /**< Button used for deleting all bonded centrals during startup. */

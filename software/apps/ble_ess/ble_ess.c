@@ -274,7 +274,9 @@ static uint32_t ess_char_add(ble_ess_t * p_ess,
             memcpy( char_data->trigger_val_buff + 1, trigger_val, max_char_len);
             trigger_des.init_len = max_char_len + 1;
         }
-                
+        
+        printf("hi");
+
         BLE_UUID_BLE_ASSIGN(ble_uuid, ESS_UUID_ES_TRIGGER_SETTING);
         trigger_des.p_uuid = &ble_uuid;
 
@@ -515,7 +517,7 @@ bool is_notification_needed(uint8_t condition, uint8_t * operand, uint8_t * ess_
         }
 
         else {
-            int n = intcmp(ess_meas_val_new, operand, char_len, is_signed);
+            int n = intcmp(ess_meas_val_new, operand+1, char_len, is_signed);
 
             if (condition == TRIG_WHILE_LT){
                 
