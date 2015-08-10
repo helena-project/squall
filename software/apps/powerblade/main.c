@@ -49,7 +49,8 @@ void update_advertisement();
 
 #define DEVICE_NAME                     "Nordic_UART"                               /**< Name of device. Will be included in the advertising data. */
 
-#define APP_ADV_INTERVAL                32                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 20 ms). */
+#define APP_ADV_INTERVAL                MSEC_TO_UNITS(200, UNIT_0_625_MS)           /**< The advertising interval (in units of 0.625 ms. This value corresponds to 20 ms). */
+//#define APP_ADV_INTERVAL                32                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 20 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
 
 #define APP_TIMER_PRESCALER             0                                           /**< Value of the RTC1 PRESCALER register. */
@@ -83,6 +84,10 @@ void update_advertisement();
 static ble_gap_sec_params_t             m_sec_params;                               /**< Security requirements for this application. */
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+
+// timer to tell the uart to turn back on
+app_timer_id_t off_timer;
+app_timer_id_t on_timer;
 
 // Advertising data specifications
 #define APP_COMPANY_IDENTIFIER 0x4908
@@ -334,7 +339,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         case BLE_GAP_EVT_CONNECTED:
             //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
             //APP_ERROR_CHECK(err_code);
-            nrf_gpio_pin_set(OUTPUT_PIN);
+            //nrf_gpio_pin_set(OUTPUT_PIN);
             num_connections++;
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
 
@@ -472,6 +477,15 @@ static void uart_disable(void)
     NRF_UART0->ENABLE = (UART_ENABLE_ENABLE_Disabled << UART_ENABLE_ENABLE_Pos);
 }
 
+static void uart_enable(void) {
+    NRF_UART0->ENABLE = (UART_ENABLE_ENABLE_Enabled << UART_ENABLE_ENABLE_Pos);
+    NRF_UART0->TASKS_STARTTX = 1;
+    NRF_UART0->TASKS_STARTRX = 1;
+    NRF_UART0->EVENTS_RXDRDY = 0;
+
+    NRF_UART0->INTENSET = UART_INTENSET_RXDRDY_Enabled << UART_INTENSET_RXDRDY_Pos;
+}
+
 uint8_t reverse(uint8_t b) {
     b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
     b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
@@ -501,12 +515,13 @@ void UART0_IRQHandler(void)
     if (adv_index >= POWERBLADE_DATA_LEN) {
         adv_index = 0;
 
-        // we only receive one packet per startup. Turn off UART
-        nrf_gpio_pin_clear(OUTPUT_PIN);
+        //// we only receive one packet per startup. Turn off UART
+        //nrf_gpio_pin_clear(OUTPUT_PIN);
         uart_disable();
+        app_timer_start(on_timer, APP_TIMER_TICKS(940, APP_TIMER_PRESCALER), NULL);
 
         // packet received. Actually start advertising
-        advertising_start();
+        //advertising_start();
         update_advertisement();
     }
 
@@ -537,12 +552,35 @@ void UART0_IRQHandler(void)
 //int update_advertisement(uint8_t* data, uint8_t size) {
 void update_advertisement() {
     //memset(advertising_data, 'a', ADV_DATA_LENGTH);
+    /*
+    advertising_data[0] = 0x07;
+    advertising_data[1] = 0x00;
+    advertising_data[2] = 0x00;
+    advertising_data[3] = 0x00;
+    advertising_data[4] = 0x00;
+    advertising_data[5] = 0x00;
+    advertising_data[6] = 0x00;
+    advertising_data[7] = 0x00;
+    advertising_data[8] = 0x00;
+    advertising_data[9] = 0x31; // V_RMS
+    advertising_data[10] = 0x12;
+    advertising_data[11] = 0x00; // True Power
+    advertising_data[12] = 0x12;
+    advertising_data[13] = 0xCD; // Apparent Power
+    advertising_data[14] = 0x00;
+    advertising_data[15] = 0x33;
+    advertising_data[16] = 0x22;
+    advertising_data[17] = 0x11; // Cumulative Energy
+    advertising_data[18] = 0x00;
+    advertising_data[19] = 0x00;
+    */
+
 
     ble_advdata_manuf_data_t manuf_specific_data;
     manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
     manuf_specific_data.data.p_data = advertising_data;
     manuf_specific_data.data.size   = ADV_DATA_LENGTH;
-    
+
     ble_advdata_t advdata;
     memset(&advdata, 0, sizeof(advdata));
     advdata.name_type               = BLE_ADVDATA_NO_NAME;
@@ -557,14 +595,30 @@ void update_advertisement() {
     APP_ERROR_CHECK(err_code);
 }
 
+void on_timer_expired() {
+    //nrf_gpio_pin_set(OUTPUT_PIN);
+    uart_enable();
+    //app_timer_start(off_timer, APP_TIMER_TICKS(200, APP_TIMER_PRESCALER), NULL);
+}
+
+/*
+void off_timer_expired() {
+    //nrf_gpio_pin_clear(OUTPUT_PIN);
+    uart_disable();
+    app_timer_start(on_timer, APP_TIMER_TICKS(800, APP_TIMER_PRESCALER), NULL);
+}
+*/
+
 
 /**@brief  Application main function.
  */
 int main(void)
 {
     // Started. GPIO low
-    nrf_gpio_pin_clear(OUTPUT_PIN);
-    nrf_gpio_cfg_output(OUTPUT_PIN);
+    //nrf_gpio_pin_clear(OUTPUT_PIN);
+    //nrf_gpio_cfg_output(OUTPUT_PIN);
+    //nrf_gpio_pin_set(13);
+    //nrf_gpio_cfg_output(13);
 
     uint8_t start_string[] = START_STRING;
     uint32_t err_code;
@@ -573,8 +627,12 @@ int main(void)
     APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
     ble_stack_init();
 
+    app_timer_create(&on_timer, APP_TIMER_MODE_SINGLE_SHOT, on_timer_expired);
+    //app_timer_create(&off_timer, APP_TIMER_MODE_SINGLE_SHOT, off_timer_expired);
+
     //TODO: Pull in simple_uart code to change baudrate
     uart_init();
+    on_timer_expired();
 
     // init adv data to 0s. Advertising doesn't start until UART data is received
     memset(advertising_data, 0, ADV_DATA_LENGTH);
@@ -590,12 +648,12 @@ int main(void)
     sec_params_init();
 
     // To test device without UART, uncomment
-    //advertising_start();
+    advertising_start();
     //update_advertisement();
 
     // Ready to receive UART data
     num_connections = 0;
-    nrf_gpio_pin_set(OUTPUT_PIN);
+    //nrf_gpio_pin_set(OUTPUT_PIN);
 
     // Enter main loop
     for (;;)
