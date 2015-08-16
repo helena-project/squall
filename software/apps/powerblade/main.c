@@ -35,6 +35,7 @@
 #include "app_gpiote.h"
 #include "app_button.h"
 #include "ble_nus.h"
+#include "ble_gap.h"
 #include "simple_uart.h"
 #include "app_util_platform.h"
 //#include "bsp.h"
@@ -51,7 +52,7 @@ void update_advertisement();
 
 #define APP_ADV_INTERVAL                MSEC_TO_UNITS(200, UNIT_0_625_MS)           /**< The advertising interval (in units of 0.625 ms. This value corresponds to 20 ms). */
 //#define APP_ADV_INTERVAL                32                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 20 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
+#define APP_ADV_TIMEOUT_IN_SECONDS      0                                           /**< The advertising timeout (in units of seconds). */
 
 #define APP_TIMER_PRESCALER             0                                           /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_MAX_TIMERS            (2 + 2)                 /**< Maximum number of simultaneously created timers. */
@@ -98,6 +99,11 @@ static uint8_t num_connections = 0;
 
 // GPIO Output pin to MSP430
 #define OUTPUT_PIN 13
+
+void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name) {
+    led_on(OUTPUT_PIN);
+    while(1);
+}
 
 /**@brief       Assert macro callback function.
  *
@@ -159,8 +165,8 @@ static void advertising_init(void)
     ble_advdata_t advdata;
     ble_advdata_manuf_data_t manuf_specific_data;
     //ble_advdata_t scanrsp;
-    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
-    //uint8_t       flags = BLE_GAP_ADV_FLAG_LE_GENERAL_DISC_MODE;
+    //uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+    uint8_t flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
 
     // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
@@ -307,14 +313,10 @@ static void advertising_start(void)
     memset(&adv_params, 0, sizeof(adv_params));
 
     adv_params.type        = BLE_GAP_ADV_TYPE_ADV_IND;
+    adv_params.timeout     = APP_ADV_TIMEOUT_IN_SECONDS;
     adv_params.p_peer_addr = NULL;
     adv_params.fp          = BLE_GAP_ADV_FP_ANY;
     adv_params.interval    = APP_ADV_INTERVAL;
-    //adv_params.interval    = BLE_GAP_ADV_INTERVAL_MIN;
-    //adv_params.timeout     = BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED;
-    adv_params.timeout     = APP_ADV_TIMEOUT_IN_SECONDS;
-    //adv_params.interval = MSEC_TO_UNITS(500, UNIT_0_625_MS);
-    //adv_params.timeout = 0;
 
     err_code = sd_ble_gap_adv_start(&adv_params);
     APP_ERROR_CHECK(err_code);
@@ -553,28 +555,35 @@ void UART0_IRQHandler(void)
 void update_advertisement() {
     //memset(advertising_data, 'a', ADV_DATA_LENGTH);
     /*
-    advertising_data[0] = 0x07;
-    advertising_data[1] = 0x00;
-    advertising_data[2] = 0x00;
-    advertising_data[3] = 0x00;
-    advertising_data[4] = 0x00;
-    advertising_data[5] = 0x00;
-    advertising_data[6] = 0x00;
-    advertising_data[7] = 0x00;
-    advertising_data[8] = 0x00;
-    advertising_data[9] = 0x31; // V_RMS
-    advertising_data[10] = 0x12;
-    advertising_data[11] = 0x00; // True Power
-    advertising_data[12] = 0x12;
-    advertising_data[13] = 0xCD; // Apparent Power
-    advertising_data[14] = 0x00;
-    advertising_data[15] = 0x33;
-    advertising_data[16] = 0x22;
-    advertising_data[17] = 0x11; // Cumulative Energy
-    advertising_data[18] = 0x00;
-    advertising_data[19] = 0x00;
-    */
+    advertising_data[0] = 0x08;
 
+    advertising_data[1] = 0x81;
+    advertising_data[2] = 0x82;
+    advertising_data[3] = 0x83;
+    advertising_data[4] = 0x84;
+
+    advertising_data[5] = 0x91;
+    advertising_data[6] = 0x92;
+    advertising_data[7] = 0x93;
+    advertising_data[8] = 0x94;
+
+    advertising_data[9] = 0xA1; // V_RMS
+
+    advertising_data[10] = 0xB1;
+    advertising_data[11] = 0xB2; // True Power
+
+    advertising_data[12] = 0xC1;
+    advertising_data[13] = 0xC2; // Apparent Power
+
+    advertising_data[14] = 0xD1;
+    advertising_data[15] = 0xD2;
+    advertising_data[16] = 0xD3;
+    advertising_data[17] = 0xD4; // Cumulative Energy
+
+    advertising_data[18] = 0xE1;
+
+    advertising_data[19] = 0xF1;
+    */
 
     ble_advdata_manuf_data_t manuf_specific_data;
     manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
@@ -634,8 +643,9 @@ int main(void)
     uart_init();
     on_timer_expired();
 
-    // init adv data to 0s. Advertising doesn't start until UART data is received
+    // init adv data to 0s
     memset(advertising_data, 0, ADV_DATA_LENGTH);
+    update_advertisement();
 
     //err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
     //APP_ERROR_CHECK(err_code);
@@ -647,9 +657,7 @@ int main(void)
     conn_params_init();
     sec_params_init();
 
-    // To test device without UART, uncomment
     advertising_start();
-    //update_advertisement();
 
     // Ready to receive UART data
     num_connections = 0;
