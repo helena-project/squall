@@ -41,10 +41,11 @@
 //#include "bsp.h"
 #include "boards.h"
 
+#include "eddystone.h"
+
 void update_advertisement();
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
-
 
 #define WAKEUP_BUTTON_ID                0                                           /**< Button used to wake up the application. */
 
@@ -55,7 +56,7 @@ void update_advertisement();
 #define APP_ADV_TIMEOUT_IN_SECONDS      0                                           /**< The advertising timeout (in units of seconds). */
 
 #define APP_TIMER_PRESCALER             0                                           /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_MAX_TIMERS            (2 + 2)                 /**< Maximum number of simultaneously created timers. */
+#define APP_TIMER_MAX_TIMERS            (2 + 3)                 /**< Maximum number of simultaneously created timers. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                           /**< Size of timer operation queues. */
 
 #define APP_GPIOTE_MAX_USERS            1                                           /**< Maximum number of simultaneously gpiote users. */
@@ -87,7 +88,6 @@ static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 
 // timer to tell the uart to turn back on
-app_timer_id_t off_timer;
 app_timer_id_t on_timer;
 
 // Advertising data specifications
@@ -97,11 +97,19 @@ static uint8_t adv_index = 0;
 static uint8_t advertising_data[ADV_DATA_LENGTH];
 static uint8_t num_connections = 0;
 
+static ble_uuid_t PHYSWEB_SERVICE_UUID[] = {{PHYSWEB_SERVICE_ID, BLE_UUID_TYPE_BLE}};
+static ble_advdata_uuid_list_t PHYSWEB_SERVICE_LIST = {1, PHYSWEB_SERVICE_UUID};
+#define PHYSWEB_URL                     "goo.gl/jEKPu9"
+app_timer_id_t eddystone_on_timer;
+app_timer_id_t eddystone_off_timer;
+
+
 // GPIO Output pin to MSP430
 #define OUTPUT_PIN 13
 
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name) {
-    led_on(OUTPUT_PIN);
+    nrf_gpio_cfg_output(LED_0);
+    nrf_gpio_pin_clear(LED_0);
     while(1);
 }
 
@@ -551,38 +559,76 @@ void UART0_IRQHandler(void)
     /**@snippet [Handling the data received over UART] */
 }
 
-//int update_advertisement(uint8_t* data, uint8_t size) {
+void eddystone_advertisement() {
+
+    // Physical Web data
+    char* url_str = PHYSWEB_URL;
+    uint8_t url_frame_length = 3 + strlen((char*)url_str); // Change to 4 if URLEND is applied
+    uint8_t m_url_frame[url_frame_length];
+    m_url_frame[0] = PHYSWEB_URL_TYPE;
+    m_url_frame[1] = PHYSWEB_TX_POWER;
+    m_url_frame[2] = PHYSWEB_URLSCHEME_HTTP;
+    for (uint8_t i=0; i<strlen((char*)url_str); i++) {
+        m_url_frame[i+3] = url_str[i];
+    }
+    //m_url_frame[url_frame_length-1] = PHYSWEB_URLEND_COMSLASH; // Remember to change url_frame_length
+
+    // Physical web service
+    ble_advdata_service_data_t service_data;
+    service_data.service_uuid   = PHYSWEB_SERVICE_ID;
+    service_data.data.p_data    = m_url_frame;
+    service_data.data.size      = url_frame_length;
+
+    // Build and set advertising data
+    ble_advdata_t advdata;
+    memset(&advdata, 0, sizeof(advdata));
+    uint8_t flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    advdata.flags.size              = sizeof(flags);
+    advdata.flags.p_data            = &flags;
+    advdata.p_service_data_array    = &service_data;
+    advdata.service_data_count      = 1;
+    advdata.uuids_complete          = PHYSWEB_SERVICE_LIST;
+
+    // Actually set advertisement data
+    uint32_t err_code;
+    err_code = ble_advdata_set(&advdata, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    // schedule a timer to go back to normal advertisements
+    app_timer_start(eddystone_off_timer, APP_TIMER_TICKS(200, APP_TIMER_PRESCALER), NULL);
+}
+
 void update_advertisement() {
-    //memset(advertising_data, 'a', ADV_DATA_LENGTH);
+    // Populate data with static numbers for debugging
     /*
-    advertising_data[0] = 0x08;
+    advertising_data[0] = 0x01; // Version
 
-    advertising_data[1] = 0x81;
-    advertising_data[2] = 0x82;
-    advertising_data[3] = 0x83;
-    advertising_data[4] = 0x84;
+    advertising_data[1] = 0x00;
+    advertising_data[2] = 0x00;
+    advertising_data[3] = 0x00;
+    advertising_data[4] = 0x01; // Sequence
 
-    advertising_data[5] = 0x91;
-    advertising_data[6] = 0x92;
-    advertising_data[7] = 0x93;
-    advertising_data[8] = 0x94;
+    advertising_data[5] = 0x42;
+    advertising_data[6] = 0x4A; // P_Scale
 
-    advertising_data[9] = 0xA1; // V_RMS
+    advertising_data[7] = 0x7B; // V_Scale
 
-    advertising_data[10] = 0xB1;
-    advertising_data[11] = 0xB2; // True Power
+    advertising_data[8] = 0x09; // WH_Scale
 
-    advertising_data[12] = 0xC1;
-    advertising_data[13] = 0xC2; // Apparent Power
+    advertising_data[9] = 0x31; // V_RMS
 
-    advertising_data[14] = 0xD1;
-    advertising_data[15] = 0xD2;
-    advertising_data[16] = 0xD3;
-    advertising_data[17] = 0xD4; // Cumulative Energy
+    advertising_data[10] = 0x08;
+    advertising_data[11] = 0x02; // True Power
 
-    advertising_data[18] = 0xE1;
+    advertising_data[12] = 0x0A;
+    advertising_data[13] = 0x1A; // Apparent Power
 
-    advertising_data[19] = 0xF1;
+    advertising_data[14] = 0x00;
+    advertising_data[15] = 0x00;
+    advertising_data[16] = 0x01;
+    advertising_data[17] = 0x0D; // Watt Hours
+
+    advertising_data[18] = 0x00; // Flags
     */
 
     ble_advdata_manuf_data_t manuf_specific_data;
@@ -594,7 +640,7 @@ void update_advertisement() {
     memset(&advdata, 0, sizeof(advdata));
     advdata.name_type               = BLE_ADVDATA_NO_NAME;
     advdata.include_appearance      = false;
-    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+    uint8_t flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     advdata.flags.size              = sizeof(flags);
     advdata.flags.p_data            = &flags;
     advdata.p_manuf_specific_data   = &manuf_specific_data;
@@ -602,32 +648,24 @@ void update_advertisement() {
     uint32_t err_code;
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
+
+    // schedule a timer to do an eddystone advertisement
+    app_timer_start(eddystone_on_timer, APP_TIMER_TICKS(800, APP_TIMER_PRESCALER), NULL);
 }
 
 void on_timer_expired() {
-    //nrf_gpio_pin_set(OUTPUT_PIN);
+    // Enable UART so we can get new data from MSP430
     uart_enable();
-    //app_timer_start(off_timer, APP_TIMER_TICKS(200, APP_TIMER_PRESCALER), NULL);
 }
-
-/*
-void off_timer_expired() {
-    //nrf_gpio_pin_clear(OUTPUT_PIN);
-    uart_disable();
-    app_timer_start(on_timer, APP_TIMER_TICKS(800, APP_TIMER_PRESCALER), NULL);
-}
-*/
-
 
 /**@brief  Application main function.
  */
 int main(void)
 {
     // Started. GPIO low
-    //nrf_gpio_pin_clear(OUTPUT_PIN);
-    //nrf_gpio_cfg_output(OUTPUT_PIN);
-    //nrf_gpio_pin_set(13);
-    //nrf_gpio_cfg_output(13);
+    //nrf_gpio_cfg_output(LED_0);
+    //nrf_gpio_pin_set(LED_0);
+    //nrf_gpio_pin_clear(LED_0);
 
     uint8_t start_string[] = START_STRING;
     uint32_t err_code;
@@ -637,7 +675,8 @@ int main(void)
     ble_stack_init();
 
     app_timer_create(&on_timer, APP_TIMER_MODE_SINGLE_SHOT, on_timer_expired);
-    //app_timer_create(&off_timer, APP_TIMER_MODE_SINGLE_SHOT, off_timer_expired);
+    app_timer_create(&eddystone_on_timer, APP_TIMER_MODE_SINGLE_SHOT, eddystone_advertisement);
+    app_timer_create(&eddystone_off_timer, APP_TIMER_MODE_SINGLE_SHOT, update_advertisement);
 
     //TODO: Pull in simple_uart code to change baudrate
     uart_init();
@@ -645,17 +684,15 @@ int main(void)
 
     // init adv data to 0s
     memset(advertising_data, 0, ADV_DATA_LENGTH);
-    update_advertisement();
 
-    //err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
-    //APP_ERROR_CHECK(err_code);
-    //err_code = bsp_buttons_enable(1 << WAKEUP_BUTTON_ID);
-    //APP_ERROR_CHECK(err_code);
     gap_params_init();
     services_init();
-    advertising_init();
+    //advertising_init();
     conn_params_init();
     sec_params_init();
+
+    update_advertisement();
+    //eddystone_advertisement();
 
     advertising_start();
 
