@@ -5,7 +5,7 @@ This guide explains how to get going with running code on nRF51822 based
 platforms.
 
 Setup
-=====
+-----
 
 1. Make sure you have the [arm-none-eabi-gcc](https://launchpad.net/gcc-arm-embedded)
 toolchain. You just need the binaries for your platform.
@@ -16,7 +16,7 @@ for your platform.
 
 
 Install an Application
-======================
+----------------------
 
 
 1. Now compile and load the application code. This will also
