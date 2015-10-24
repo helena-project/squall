@@ -35,4 +35,9 @@ load the softdevice onto the nRF if needed.
         PCA10001
         PCA10003
         SQUALL
+        
+    If you have multiple JLink devices, you can specify which one
+    to use like this:
+    
+        SEGGER_SERIAL=<serial num> make flash
 
