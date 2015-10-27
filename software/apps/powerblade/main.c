@@ -103,6 +103,9 @@ static ble_advdata_uuid_list_t PHYSWEB_SERVICE_LIST = {1, PHYSWEB_SERVICE_UUID};
 app_timer_id_t eddystone_on_timer;
 app_timer_id_t eddystone_off_timer;
 
+// BLE Address
+uint8_t MAC_ADDR[6] = {0x00, 0x00, 0x70, 0xe5, 0x98, 0xc0};
+#define ADDRESS_FLASH_LOCATION 0x0001fff8
 
 // GPIO Output pin to MSP430
 #define OUTPUT_PIN 13
@@ -454,6 +457,35 @@ static void ble_stack_init(void)
     // Subscribe for BLE events.
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
     APP_ERROR_CHECK(err_code);
+
+    // Set the MAC address of the device
+    uint8_t _ble_address[6];
+    memcpy(_ble_address, (uint8_t*)ADDRESS_FLASH_LOCATION, 6);
+    if (_ble_address[1] == 0xFF && _ble_address[0] == 0xFF) {
+        // No user-defined address stored in flash, user manufacturer address
+        //  with Michigan OUI
+        ble_gap_addr_t gap_addr;
+
+        // Get the full manufacturer address
+        sd_ble_gap_address_get(&gap_addr);
+
+        // Set the new BLE address with the Michigan OUI
+        gap_addr.addr_type = BLE_GAP_ADDR_TYPE_PUBLIC;
+        memcpy(gap_addr.addr+2, MAC_ADDR+2, sizeof(gap_addr.addr)-2);
+        err_code = sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE,
+                &gap_addr);
+        APP_ERROR_CHECK(err_code);
+    } else {
+        // Use user-defined address from flash
+        ble_gap_addr_t gap_addr;
+
+        // Set the new BLE address with the user-defined address
+        gap_addr.addr_type = BLE_GAP_ADDR_TYPE_PUBLIC;
+        memcpy(gap_addr.addr, _ble_address, 6);
+        err_code = sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE,
+                &gap_addr);
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 
@@ -496,13 +528,6 @@ static void uart_enable(void) {
     NRF_UART0->INTENSET = UART_INTENSET_RXDRDY_Enabled << UART_INTENSET_RXDRDY_Pos;
 }
 
-uint8_t reverse(uint8_t b) {
-    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-    return b;
-}
-
 /**@brief   Function for handling UART interrupts.
  *
  * @details This function will receive a single character from the UART and append it to a string.
@@ -518,7 +543,7 @@ void UART0_IRQHandler(void)
     /**@snippet [Handling the data received over UART] */
     static uint8_t POWERBLADE_DATA_LEN = 19;
 
-    advertising_data[adv_index] = reverse(simple_uart_get());
+    advertising_data[adv_index] = simple_uart_get();
     adv_index++;
 
     // write one packet to advertisement at a time

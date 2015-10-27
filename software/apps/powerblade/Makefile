@@ -22,7 +22,7 @@ USE_SOFTDEVICE = s110
 
 SDK_VERSION = 7
 SDK_PATH ?= $(HOME)/workspace/nrf/nrf51822_sdk/sdk7/
-TEMPLATE_PATH ?= ../../nrf51-pure-gcc-setup/template/
+TEMPLATE_PATH ?= ../../nrf5x-base/nrf51-pure-gcc-setup/template/
 SOFTDEVICE ?= $(HOME)/workspace/nrf/softdevices/s110_7.1.0/s110_nrf51822_7.1.0_softdevice.hex
 
 LIBRARY_PATHS += ./
