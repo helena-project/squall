@@ -26,20 +26,10 @@ BOARD = BOARD_$(TARGET_UPPER)
 
 APPLICATION_SRCS += $(TARGET_LOWER).c
 
-USE_SOFTDEVICE = s110
-
-SDK_VERSION = 9
-NRF_BASE_PATH ?= ../../nrf5x-base/
-TEMPLATE_PATH ?= ../../nrf5x-base/nrf51-pure-gcc-setup/template/
-SOFTDEVICE ?= ../../nrf5x-base/softdevice/s110_nrf51_8.0.0_softdevice.hex
-SDK_PATH ?= ../../nrf5x-base/sdk/nrf51_sdk_9.0.0/
+SOFTDEVICE_MODEL = s110
 
 LIBRARY_PATHS += ../../include
 SOURCE_PATHS += ../../src
 
-CFLAGS = -Os
-CFLAGS += $(MFLAGS)
-GDB_PORT_NUMBER = 2331
-
-include $(NRF_BASE_PATH)/Makefile.include
-include $(TEMPLATE_PATH)Makefile
+NRF_BASE_PATH ?= ../../nrf5x-base
+include $(NRF_BASE_PATH)/make/Makefile
