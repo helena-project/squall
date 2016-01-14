@@ -22,18 +22,11 @@
 
 #include "simple_ble.h"
 #include "simple_adv.h"
+#include "simple_timer.h"
 
 /*******************************************************************************
  *   State and Configuration
  ******************************************************************************/
-
-// Randomly generated UUID for this service
-const ble_uuid128_t custom_service_uuid128 = {
-	{0x83, 0xbe, 0xd0, 0x58, 0xf1, 0xaf, 0x42, 0x62,
-	 0x9c, 0xf8, 0x4f, 0x73, 0xe9, 0xdb, 0x9c, 0xe4}
-};
-
-ble_uuid_t custom_service_uuid;
 
 // Intervals for advertising and connections
 static simple_ble_config_t ble_config = {
@@ -48,8 +41,13 @@ static simple_ble_config_t ble_config = {
 // State for this CuSToM service application
 static ble_cstm_t cstm;
 
-// Timer to update our counter
-static app_timer_id_t  characteristic_timer;
+// Randomly generated UUID for this service
+simple_ble_service_t custom_service = {
+    .uuid128 = {{0x83, 0xbe, 0xd0, 0x58, 0xf1, 0xaf, 0x42, 0x62,
+	             0x9c, 0xf8, 0x4f, 0x73, 0xe9, 0xdb, 0x9c, 0xe4}}
+};
+simple_ble_char_t num_char = {.uuid16 = CUSTOM_SERVICE_CHAR_NUMBER_SHORT_UUID};
+
 
 /*******************************************************************************
  *   Timer Callback
@@ -64,36 +62,23 @@ static void timer_handler (void* p_context) {
  *   INIT FUNCTIONS
  ******************************************************************************/
 
-static void timers_init(void) {
-	uint32_t err_code;
-
-	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, false);
-
-	err_code = app_timer_create(&characteristic_timer,
-	                            APP_TIMER_MODE_REPEATED,
-	                            timer_handler);
-	APP_ERROR_CHECK(err_code);
-
-	// Start timer to update characteristic
-	err_code = app_timer_start(characteristic_timer, UPDATE_RATE, NULL);
-	APP_ERROR_CHECK(err_code);
-}
-
 // Init services
 void services_init (void) {
 
     // Add custom service
-    cstm.service_handle = simple_ble_add_service(&custom_service_uuid128,
-                                                 &custom_service_uuid,
-                                                 CUSTOM_SERVICE_SHORT_UUID);
+    simple_ble_add_service(&custom_service);
 
     // Add the characteristic
-    simple_ble_add_characteristic(1, 0, 0,  // read, write, notify
-                                  custom_service_uuid.type,
-                                  CUSTOM_SERVICE_CHAR_NUMBER_SHORT_UUID,
+    simple_ble_add_characteristic(1, 0, 0,0,  // read, write, notify, vlen
                                   1, (uint8_t*) &cstm.num_value,
-                                  cstm.service_handle,
-                                  &cstm.num_handles);
+                                  &custom_service,
+                                  &num_char);
+}
+
+void ble_error(uint32_t error_code) {
+    // display error when developing on the squall platform
+    led_init(LED_0);
+    led_on(LED_0);
 }
 
 
@@ -106,13 +91,14 @@ int main(void) {
 	simple_ble_init(&ble_config);
 
 	// Setup our advertisement
-	simple_adv_service(&custom_service_uuid);
+	simple_adv_service(&custom_service.uuid_handle);
 
-	// You must initialize and use app timers to initialize conn params
-	timers_init();
+    // Start timer to update characteristic
+    simple_timer_start(1000, timer_handler);
 
 	// Enter main loop
 	while(1) {
 		power_manage();
 	}
 }
+
