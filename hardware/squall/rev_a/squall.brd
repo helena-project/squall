@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="8.3.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.0005" altunitdist="inch" altunit="inch"/>
+<grid distance="100" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="10" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="13" fill="10" visible="no" active="no"/>
@@ -1055,6 +1056,9 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <autorouter>
 <pass name="Default">
 <param name="RoutingGrid" value="50mil"/>
+<param name="AutoGrid" value="1"/>
+<param name="Efforts" value="0"/>
+<param name="TopRouterVariant" value="1"/>
 <param name="tpViaShape" value="round"/>
 <param name="PrefDir.1" value="|"/>
 <param name="PrefDir.2" value="0"/>
@@ -1147,28 +1151,28 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 </autorouter>
 <elements>
 <element name="C10" library="passives" package="0402_CAP" value="0.1uF" x="18.8976" y="11.8538" smashed="yes">
+<attribute name="DIGIKEY" value="445-4952-1-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="18.8976" y="11.5142" size="0.762" layer="25" font="vector" ratio="12" rot="R180" align="bottom-center"/>
 <attribute name="VALUE" x="18.8976" y="10.4568" size="1.016" layer="27" font="vector" ratio="12" align="bottom-center"/>
-<attribute name="DIGIKEY" value="445-4952-1-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C7" library="passives" package="0402_CAP" value="1nF" x="12.0476" y="19.1596" smashed="yes" rot="R90">
+<attribute name="DIGIKEY" value="490-1303-1-ND" x="12.0476" y="19.1596" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="NAME" x="11.7268" y="19.153" size="0.762" layer="25" font="vector" ratio="12" rot="R90" align="bottom-center"/>
 <attribute name="VALUE" x="13.4446" y="19.1596" size="1.016" layer="27" font="vector" ratio="12" rot="R90" align="bottom-center"/>
-<attribute name="DIGIKEY" value="490-1303-1-ND" x="12.0476" y="19.1596" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="C15" library="passives" package="0402_CAP" value="4.7uF" x="14.5415" y="10.3124" smashed="yes" rot="R270">
+<attribute name="DIGIKEY" value="445-5947-1-ND" x="14.5415" y="10.3124" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="NAME" x="14.8717" y="10.8806" size="0.635" layer="25" font="vector" ratio="13" rot="R90" align="top-center"/>
 <attribute name="VALUE" x="13.1445" y="10.3124" size="1.016" layer="27" font="vector" ratio="12" rot="R270" align="bottom-center"/>
-<attribute name="DIGIKEY" value="445-5947-1-ND" x="14.5415" y="10.3124" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="U1" library="chips" package="QFN-48-6MM" value="NRF51822QF" x="15.64" y="15.3658" smashed="yes" rot="R90">
-<attribute name="MOUSER" value="949-NRF51822-QFAB-R7" x="15.64" y="15.3658" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="DIGIKEY" value="1490-1032-1-ND" x="15.64" y="15.3658" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MOUSER" value="949-NRF51822-QFAB-R7" x="15.64" y="15.3658" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="NAME" x="12.1702" y="14.3752" size="0.762" layer="25" font="vector" ratio="12" rot="R90" align="bottom-center"/>
 </element>
 <element name="B1" library="chips" package="BAL-NRF01D3" value="BAL-NRF01D3" x="15.24" y="19.8628" smashed="yes" rot="R90">
-<attribute name="MOUSER" value="511-BAL-NRF01D3" x="15.24" y="19.8628" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="DIGIKEY" value="497-13637-1-ND" x="15.24" y="19.8628" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MOUSER" value="511-BAL-NRF01D3" x="15.24" y="19.8628" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="NAME" x="14.49" y="19.8628" size="0.762" layer="25" font="vector" ratio="12" rot="R90" align="bottom-center"/>
 </element>
 <element name="L1" library="passives" package="0402_CAP" value="15nH" x="16.5862" y="7.3152" smashed="yes" rot="R90">
@@ -1225,43 +1229,43 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <attribute name="VALUE" x="23.071721875" y="14.8196125" size="1.016" layer="27" font="vector" ratio="12" rot="R280" align="bottom-center"/>
 </element>
 <element name="J3" library="connector" package="USB_MICRO_B-JST-MC5BR3-M404-4S-TB" value="MICRO_USB_B_JST_MC5BR3-M404-4S" x="12.7" y="2.9718" smashed="yes">
-<attribute name="MOUSER" value="53X3655" x="12.7" y="2.9718" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="DIGIKEY" value="455-2567-2-ND" x="12.7" y="2.9718" size="0.762" layer="27" ratio="12" display="off"/>
+<attribute name="MOUSER" value="53X3655" x="12.7" y="2.9718" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="NAME" x="9.1186" y="6.3208" size="0.762" layer="25" font="vector" ratio="12" align="bottom-center"/>
 </element>
 <element name="A1" library="chips" package="FRACTUS-ANTENNA-FR05-S1-N-0-102" value="FRACTUS-2.4GHZ-FR05-S1-N-0-102" x="12.7" y="23.368" smashed="yes" rot="R180">
-<attribute name="RICHARDSON_RFPD" value="FR05-S1-N-0102B" x="12.7" y="23.368" size="0.762" layer="27" ratio="12" rot="R180" display="off"/>
 <attribute name="NAME" x="12.7" y="22.8634" size="0.762" layer="25" font="vector" ratio="12" rot="R180" align="bottom-center"/>
+<attribute name="RICHARDSON_RFPD" value="FR05-S1-N-0102B" x="12.7" y="23.368" size="0.762" layer="27" ratio="12" rot="R180" display="off"/>
 </element>
 <element name="J2" library="headers" package="2X5/SMD/0.4MM" value="HIROSE-DF40C-10DP-0.4V" x="22.225" y="10.16" smashed="yes">
-<attribute name="MOUSER" value="798-DF40C10DP0.4V51" x="22.225" y="10.16" size="0.762" layer="27" ratio="12" display="off"/>
-<attribute name="NEWARK" value="68X2585" x="22.225" y="10.16" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="DIGIKEY" value="H11616CT-ND" x="22.225" y="10.16" size="0.762" layer="27" ratio="12" display="off"/>
+<attribute name="MOUSER" value="798-DF40C10DP0.4V51" x="22.225" y="10.16" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="NAME" x="23.971" y="10.16" size="0.762" layer="25" font="vector" ratio="12" rot="R90" align="top-center"/>
+<attribute name="NEWARK" value="68X2585" x="22.225" y="10.16" size="0.762" layer="27" ratio="12" display="off"/>
 </element>
 <element name="J1" library="headers" package="2X5/SMD/0.4MM" value="HIROSE-DF40C-10DP-0.4V" x="3.175" y="15.24" smashed="yes">
-<attribute name="MOUSER" value="798-DF40C10DP0.4V51" x="3.175" y="15.24" size="0.762" layer="27" ratio="12" display="off"/>
-<attribute name="NEWARK" value="68X2585" x="3.175" y="15.24" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="DIGIKEY" value="H11616CT-ND" x="3.175" y="15.24" size="0.762" layer="27" ratio="12" display="off"/>
+<attribute name="MOUSER" value="798-DF40C10DP0.4V51" x="3.175" y="15.24" size="0.762" layer="27" ratio="12" display="off"/>
 <attribute name="NAME" x="1.4036" y="15.24" size="0.762" layer="25" font="vector" ratio="12" rot="R270" align="top-center"/>
+<attribute name="NEWARK" value="68X2585" x="3.175" y="15.24" size="0.762" layer="27" ratio="12" display="off"/>
 </element>
 <element name="BAT1" library="batteries" package="BAT-HLD-002-THM" value="BAT-HLD-002-THM" x="12.7" y="12.7" smashed="yes" rot="MR322.5">
-<attribute name="MOUSER" value="712-BAT-HLD-002-THM" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR322.5" display="off"/>
 <attribute name="DIGIKEY" value="BAT-HLD-002-THM-ND" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR322.5" display="off"/>
+<attribute name="MOUSER" value="712-BAT-HLD-002-THM" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR322.5" display="off"/>
 <attribute name="NAME" x="5.18784375" y="6.93398125" size="0.762" layer="26" font="vector" ratio="12" rot="MR52.5" align="bottom-center"/>
 </element>
 <element name="BAT2" library="batteries" package="ML-2020/H1C" value="ML-2020/H1C" x="12.7" y="12.7" smashed="yes" rot="MR348">
-<attribute name="MOUSER" value="658-ML-2020/H1CN" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR348" display="off"/>
 <attribute name="DIGIKEY" value="P047-ND" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR348" display="off"/>
+<attribute name="MOUSER" value="658-ML-2020/H1CN" x="12.7" y="12.7" size="0.762" layer="28" ratio="12" rot="MR348" display="off"/>
 <attribute name="NAME" x="7.756978125" y="11.809971875" size="0.762" layer="26" font="vector" ratio="12" rot="MR258" align="bottom-center"/>
 </element>
 <element name="U2" library="ftdichip" package="QFN32" value="FT232RQ" x="8.001" y="10.5156" smashed="yes" rot="R45">
-<attribute name="OC_NEWARK" value="91K9919" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
-<attribute name="MPN" value="FT232RQ" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
 <attribute name="MF" value="" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
-<attribute name="OC_FARNELL" value="1146033" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
-<attribute name="VALUE" x="8.21313125" y="4.5759" size="1.27" layer="27" rot="R45"/>
+<attribute name="MPN" value="FT232RQ" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
 <attribute name="NAME" x="5.911496875" y="12.311090625" size="0.762" layer="25" font="vector" ratio="12" rot="R45" align="bottom-center"/>
+<attribute name="OC_FARNELL" value="1146033" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
+<attribute name="OC_NEWARK" value="91K9919" x="8.001" y="10.5156" size="0.762" layer="27" ratio="12" rot="R45" display="off"/>
+<attribute name="VALUE" x="8.21313125" y="4.5759" size="1.27" layer="27" rot="R45"/>
 </element>
 <element name="L2" library="passives" package="0603_CAP" value="10uH" x="16.4338" y="9.2456" smashed="yes" rot="R90">
 <attribute name="DIGIKEY" value="490-4025-1-ND" x="16.4338" y="9.2456" size="1.778" layer="27" rot="R90" display="off"/>
@@ -1288,9 +1292,9 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <attribute name="VALUE" x="7.718828125" y="8.201428125" size="1.016" layer="27" font="vector" ratio="12" rot="R135" align="bottom-center"/>
 </element>
 <element name="R2" library="passives" package="0402_RES" value="150" x="2.3622" y="12.5222" smashed="yes" rot="R180">
+<attribute name="DIGIKEY" value="RHM150CDCT-ND" x="2.3622" y="12.5222" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="NAME" x="1.6256" y="12.5222" size="0.762" layer="25" font="vector" ratio="12" align="center-right"/>
 <attribute name="VALUE" x="2.3622" y="13.9192" size="1.016" layer="27" font="vector" ratio="12" rot="R180" align="bottom-center"/>
-<attribute name="DIGIKEY" value="RHM150CDCT-ND" x="2.3622" y="12.5222" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="C1" library="passives" package="0402_CAP" value="0.8pF" x="14.5542" y="21.2118" smashed="yes" rot="R180">
 <attribute name="DIGIKEY" value="490-6269-1-ND" x="14.5542" y="21.2118" size="0.762" layer="27" ratio="12" rot="R180" display="off"/>
@@ -1370,7 +1374,6 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <contactref element="U2" pad="20"/>
 <contactref element="C11" pad="2"/>
 <contactref element="J3" pad="5"/>
-<contactref element="U2" pad="24"/>
 <contactref element="C12" pad="2"/>
 <contactref element="C13" pad="2"/>
 <contactref element="BAT2" pad="NEG"/>
@@ -1467,9 +1470,6 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <via x="0.8382" y="14.097" extent="1-16" drill="0.2032"/>
 <contactref element="S1" pad="1"/>
 <contactref element="U2" pad="26"/>
-<contactref element="U2" pad="4"/>
-<contactref element="U2" pad="17"/>
-<contactref element="U2" pad="20"/>
 <wire x1="8.29938125" y1="13.37938125" x2="8.38990625" y2="13.37938125" width="0.1524" layer="1"/>
 <wire x1="7.2585375" y1="13.025828125" x2="7.457365625" y2="12.827" width="0.1524" layer="1"/>
 <wire x1="7.457365625" y1="12.827" x2="7.5565" y2="12.827" width="0.1524" layer="1"/>
