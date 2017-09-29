@@ -1151,7 +1151,7 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 </autorouter>
 <elements>
 <element name="C10" library="passives" package="0402_CAP" value="0.1uF" x="18.8976" y="11.8538" smashed="yes">
-<attribute name="DIGIKEY" value="490-1318-6-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY" value="490-1318-1-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="18.8976" y="11.5142" size="0.762" layer="25" font="vector" ratio="12" rot="R180" align="bottom-center"/>
 <attribute name="VALUE" x="18.8976" y="10.4568" size="1.016" layer="27" font="vector" ratio="12" align="bottom-center"/>
 </element>
@@ -1277,17 +1277,17 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <attribute name="VALUE" x="14.1478" y="10.3124" size="1.016" layer="27" font="vector" ratio="12" rot="R90" align="bottom-center"/>
 </element>
 <element name="C11" library="passives" package="0402_CAP" value="0.1uF" x="13.589" y="10.3124" smashed="yes" rot="R90">
-<attribute name="DIGIKEY" value="490-1318-6-ND" x="13.589" y="10.3124" size="0.762" layer="27" ratio="12" rot="R90" display="off"/>
+<attribute name="DIGIKEY" value="490-1318-1-ND" x="13.589" y="10.3124" size="0.762" layer="27" ratio="12" rot="R90" display="off"/>
 <attribute name="NAME" x="13.8938" y="11.049" size="0.635" layer="25" font="vector" ratio="13" align="bottom-center"/>
 <attribute name="VALUE" x="14.986" y="10.3124" size="1.016" layer="27" font="vector" ratio="12" rot="R90" align="bottom-center"/>
 </element>
 <element name="C12" library="passives" package="0402_CAP" value="0.1uF" x="11.9126" y="10.3124" smashed="yes" rot="R270">
-<attribute name="DIGIKEY" value="490-1318-6-ND" x="11.9126" y="10.3124" size="0.762" layer="27" ratio="12" rot="R270" display="off"/>
+<attribute name="DIGIKEY" value="490-1318-1-ND" x="11.9126" y="10.3124" size="0.762" layer="27" ratio="12" rot="R270" display="off"/>
 <attribute name="NAME" x="11.7856" y="11.049" size="0.635" layer="25" font="vector" ratio="13" rot="R270" align="center-right"/>
 <attribute name="VALUE" x="10.5156" y="10.3124" size="1.016" layer="27" font="vector" ratio="12" rot="R270" align="bottom-center"/>
 </element>
 <element name="C13" library="passives" package="0402_CAP" value="0.1uF" x="6.731" y="7.2136" smashed="yes" rot="R135">
-<attribute name="DIGIKEY" value="490-1318-6-ND" x="6.731" y="7.2136" size="0.762" layer="27" ratio="12" rot="R135" display="off"/>
+<attribute name="DIGIKEY" value="490-1318-1-ND" x="6.731" y="7.2136" size="0.762" layer="27" ratio="12" rot="R135" display="off"/>
 <attribute name="NAME" x="6.385390625" y="7.045790625" size="0.762" layer="25" font="vector" ratio="12" rot="R135" align="bottom-center"/>
 <attribute name="VALUE" x="7.718828125" y="8.201428125" size="1.016" layer="27" font="vector" ratio="12" rot="R135" align="bottom-center"/>
 </element>
