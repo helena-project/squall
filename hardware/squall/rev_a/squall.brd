@@ -1151,7 +1151,7 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 </autorouter>
 <elements>
 <element name="C10" library="passives" package="0402_CAP" value="0.1uF" x="18.8976" y="11.8538" smashed="yes">
-<attribute name="DIGIKEY" value="445-4952-1-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY" value="490-1318-6-ND" x="18.8976" y="11.8538" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="18.8976" y="11.5142" size="0.762" layer="25" font="vector" ratio="12" rot="R180" align="bottom-center"/>
 <attribute name="VALUE" x="18.8976" y="10.4568" size="1.016" layer="27" font="vector" ratio="12" align="bottom-center"/>
 </element>

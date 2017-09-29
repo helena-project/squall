@@ -3969,7 +3969,7 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 </classes>
 <parts>
 <part name="C10" library="passives" deviceset="CAPACITOR" device="" value="0.1uF">
-<attribute name="DIGIKEY" value="445-4952-1-ND"/>
+<attribute name="DIGIKEY" value="490-1318-6-ND"/>
 </part>
 <part name="P+6" library="supply1" deviceset="VCC" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
