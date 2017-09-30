@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.3.2">
+<eagle version="8.3.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -4935,6 +4935,18 @@ If BAT2 is connected, D2 and R2 must be populated for recharging.</text>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="104,2,139.7,91.44,U2,VCC,FTDI_VCC,,,"/>
+<approved hash="202,2,139.7,78.74,U2,OSCI,,,,"/>
+<approved hash="202,2,167.64,83.82,U2,!CTS,,,,"/>
+<approved hash="202,2,167.64,78.74,U2,!DSR,,,,"/>
+<approved hash="202,2,167.64,76.2,U2,!DCD,,,,"/>
+<approved hash="202,2,167.64,73.66,U2,!RI,,,,"/>
+<approved hash="104,2,139.7,88.9,U2,VCCIO,3V3,,,"/>
+<approved hash="202,2,139.7,83.82,U2,!RESET,,,,"/>
+<approved hash="113,1,124.356,92.606,FRAME1,,,,,"/>
+<approved hash="113,2,124.356,92.606,FRAME2,,,,,"/>
+</errors>
 </schematic>
 </drawing>
 <compatibility>

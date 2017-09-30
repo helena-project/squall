@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.3.2">
+<eagle version="8.3.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1474,7 +1474,8 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <wire x1="7.2585375" y1="13.025828125" x2="7.457365625" y2="12.827" width="0.1524" layer="1"/>
 <wire x1="7.457365625" y1="12.827" x2="7.5565" y2="12.827" width="0.1524" layer="1"/>
 <wire x1="7.5565" y1="12.827" x2="8.38990625" y2="13.37938125" width="0.1524" layer="1" curve="67.072708"/>
-<wire x1="15.1384" y1="14.859" x2="15.64" y2="15.3658" width="0" layer="19" extent="1-1"/>
+<wire x1="15.64" y1="15.3658" x2="15.64" y2="15.3606" width="0.254" layer="1"/>
+<wire x1="15.64" y1="15.3606" x2="15.1384" y2="14.859" width="0.254" layer="1"/>
 </signal>
 <signal name="VCC">
 <contactref element="C10" pad="1"/>
@@ -2164,24 +2165,24 @@ This Sunstone Circuits 2 Layer .DRU has been set to cover our minimum requiremen
 <approved hash="4,1,12bad3eaf73721ad"/>
 <approved hash="4,1,f2b72befd2b21d2c"/>
 <approved hash="19,1,0a4c2a282c140c70"/>
+<approved hash="19,1,0e1c2e782f1c0f78"/>
 <approved hash="19,1,0a5c2a382c080c6c"/>
 <approved hash="19,1,067c26182508056c"/>
-<approved hash="19,1,0e1c2e782f1c0f78"/>
+<approved hash="19,1,ca4c6a286c16cc72"/>
 <approved hash="19,1,ce1c6e786f1ecf7a"/>
 <approved hash="19,1,c67c6618650ac56e"/>
 <approved hash="19,1,ca5c6a386c0acc6e"/>
-<approved hash="19,1,ca4c6a286c16cc72"/>
-<approved hash="19,1,825c1a381c148470"/>
 <approved hash="19,1,824c1a281c08846c"/>
+<approved hash="19,1,825c1a381c148470"/>
 <approved hash="19,1,8e7c161815148d70"/>
 <approved hash="19,1,861c1e781f008764"/>
-<approved hash="19,1,f24cfa28fc12f476"/>
+<approved hash="19,1,f61cfe78ff1af77e"/>
 <approved hash="19,1,f25cfa38fc0ef46a"/>
 <approved hash="19,1,fe7cf618f50efd6a"/>
-<approved hash="19,1,f61cfe78ff1af77e"/>
+<approved hash="19,1,f24cfa28fc12f476"/>
 <approved hash="4,1,e3a0bf3309cc9e56"/>
-<approved hash="4,1,25ff7a5253a83824"/>
 <approved hash="4,1,7265233724ac739a"/>
+<approved hash="4,1,25ff7a5253a83824"/>
 <approved hash="19,16,ea2dfe49fd0be96f"/>
 <approved hash="19,16,02fe261a250f01eb"/>
 <approved hash="19,16,6fe31807170060e4"/>
