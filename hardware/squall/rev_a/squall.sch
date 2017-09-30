@@ -4014,7 +4014,7 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 </part>
 <part name="GND20" library="supply1" deviceset="GND" device=""/>
 <part name="R4" library="passives" deviceset="RESISTOR" device="" value="12k">
-<attribute name="DIGIKEY" value="RHM12.0KCDCT-ND"/>
+<attribute name="DIGIKEY" value="1276-4122-1-ND"/>
 </part>
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
 <part name="D1" library="SparkFun-LED" deviceset="LED" device="0603" value="BLUE"/>
