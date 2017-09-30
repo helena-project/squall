@@ -4019,7 +4019,7 @@ Source: http://www.ftdichip.com/Documents/DataSheets/DS_FT232R_v104.pdf</descrip
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
 <part name="D1" library="SparkFun-LED" deviceset="LED" device="0603" value="BLUE"/>
 <part name="R3" library="passives" deviceset="RESISTOR" device="" value="1k">
-<attribute name="DIGIKEY" value="RHM1.0KCECT-ND"/>
+<attribute name="DIGIKEY" value="1276-4376-1-ND"/>
 </part>
 <part name="FRAME1" library="frames" deviceset="LETTER_L" device=""/>
 <part name="J3" library="connector" deviceset="MICRO_USB_B_JST_MC5BR3-M404-4S" device=""/>
